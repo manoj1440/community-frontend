@@ -57,7 +57,7 @@ const DashboardPage = () => {
   return (
     <div className="dashboard-page">
       <h1 className="dashboard-title">Statistics</h1>
-      {dashboardData && (
+      {/* {dashboardData && (
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={6}>
             <Card className="dashboard-card card-blue">
@@ -95,15 +95,6 @@ const DashboardPage = () => {
               />
             </Card>
           </Col>
-          {/* <Col xs={24} sm={12} md={6}>
-            <Card className="dashboard-card card-purple">
-              <Statistic
-                title="Total Received Batches"
-                value={dashboardData.totalReceivedBatches}
-                valueStyle={{ fontSize: '2rem' }}
-              />
-            </Card>
-          </Col> */}
           <Col xs={24} sm={12} md={6}>
             <Card className="dashboard-card card-purple">
               <div style={{
@@ -122,8 +113,8 @@ const DashboardPage = () => {
             </Card>
           </Col>
         </Row>
-      )}
-      {dashboardData && dashboardData.userOverview && dashboardData.userOverview.length > 0 && (
+      )} */}
+      {/* {dashboardData && dashboardData.userOverview && dashboardData.userOverview.length > 0 && (
         <div className="user-overview-table">
           <h2>Customers Info </h2>
           <CustomTable
@@ -138,7 +129,7 @@ const DashboardPage = () => {
             }}
           />
         </div>
-      )}
+      )} */}
     </div>
   );
 };
