@@ -1,0 +1,68 @@
+/* Responsive Styling */
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 95vh;
+    background-color: white;
+}
+
+.login-card {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    max-width: 1200px;
+    /* Limit the maximum width */
+    padding: 20px;
+    height: 35rem;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+.login-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+    font-family: "Gilroy-Bold", Helvetica;
+    flex: 1;
+    background: linear-gradient(180deg, rgb(140, 67, 230) 0%, rgb(239, 141, 109) 100%);
+}
+
+.login-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 20px;
+    /* Add padding for spacing */
+}
+
+.login-form {
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-form-button {
+    width: 100%;
+}
+
+/* Media Query for Smaller Screens */
+@media screen and (max-width: 768px) {
+    .login-card {
+        flex-direction: column;
+        /* Change to column layout for smaller screens */
+        padding: 10px;
+        /* Adjust padding for smaller screens */
+        height: auto;
+    }
+
+    .login-left {
+        font-size: 1.5rem;
+        /* Adjust font size for smaller screens */
+    }
+}

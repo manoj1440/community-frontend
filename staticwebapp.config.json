@@ -1,0 +1,19 @@
+{
+  "navigationFallback": {
+    "rewrite": "index.html",
+    "exclude": [
+      "/static/media/*.{png,jpg,jpeg,gif,bmp}",
+      "/static/css/*"
+    ]
+  },
+  "mimeTypes": {
+    ".json": "text/json"
+  },
+  "routes": [
+    {
+      "route": "/*",
+      "serve": "/index.html",
+      "statusCode": 200
+    }
+  ]
+}
