@@ -9,7 +9,7 @@ const AddWarehouseForm = ({ onCancel, isAddModalVisible, fetchWarehouses }) => {
     const onFinish = async (values) => {
         try {
             const response = await api.request('post', '/api/warehouse', values);
-            onCancel(false);
+            onCancel();
             fetchWarehouses();
         } catch (error) {
             console.error('Error adding warehouse:', error);
@@ -20,7 +20,7 @@ const AddWarehouseForm = ({ onCancel, isAddModalVisible, fetchWarehouses }) => {
         <Modal
             title="Add Warehouse"
             visible={isAddModalVisible}
-            onCancel={() => onCancel(false)}
+            onCancel={() => onCancel()}
             footer={null}
         >
             <Form form={form} onFinish={onFinish} layout="vertical">
@@ -34,7 +34,7 @@ const AddWarehouseForm = ({ onCancel, isAddModalVisible, fetchWarehouses }) => {
                     <Button type="primary" htmlType="submit">
                         Add Warehouse
                     </Button>
-                    <Button onClick={() => onCancel(false)} style={{ marginLeft: 8 }}>
+                    <Button onClick={() => onCancel()} style={{ marginLeft: 8 }}>
                         Cancel
                     </Button>
                 </Form.Item>

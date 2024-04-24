@@ -10,6 +10,8 @@ import Customers from './components/customer/Customers';
 import Farmers from './components/farmer/Farmers';
 import Transporters from './components/transporter/Transporters';
 import Prices from './components/price/Prices';
+import Consignments from './components/consignment/Consignments';
+import StockIns from './components/stock-in/StockIns';
 
 const App = () => {
   return (
@@ -28,6 +30,8 @@ const App = () => {
           <Route path="farmers" element={<Farmers />} />
           <Route path="transporters" element={<Transporters />} />
           <Route path="price" element={<Prices />} />
+          <Route path="consignment" element={<Consignments />} />
+          <Route path="stock-in" element={<StockIns />} />
           
         </Route>
       </Routes>

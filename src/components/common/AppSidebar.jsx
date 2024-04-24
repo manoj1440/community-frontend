@@ -29,6 +29,16 @@ const AppSidebar = ({ collapsed, setCollapsed }) => {
             label: 'Dashboard',
         },
         {
+            key: '/stock-in',
+            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            label: 'Stock In',
+        },
+        {
+            key: '/consignment',
+            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            label: 'Consignment',
+        },
+        {
             key: '/warehouse',
             icon: <WalletOutlined style={{ fontSize: '1rem' }} />,
             label: 'Warehouse',

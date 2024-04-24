@@ -23,10 +23,7 @@ const CustomTable = ({
         }
         setColumnFilters({ ...filters });
     };
-
-    console.log('pagination===', pagination);
-    console.log('currentPagination===', currentPagination);
-
+    
     const applyFilters = (data, filters) => {
         return data.filter((record) => {
             return Object.keys(filters).every((key) => {
