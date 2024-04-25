@@ -90,14 +90,14 @@ const StockOuts = () => {
     const handleDeleteConsignment = (consignmentId) => {
         Modal.confirm({
             title: 'Confirm Deletion',
-            content: 'Are you sure you want to delete this consignment?',
+            content: 'Are you sure you want to delete this stock out?',
             onOk: async () => {
                 try {
-                    console.log(`Deleting consignment with ID: ${consignmentId}`);
-                    await api.request('delete', `/api/consignment/${consignmentId}`);
+                    console.log(`Deleting stock out with ID: ${consignmentId}`);
+                    await api.request('delete', `/api/stock-out/${consignmentId}`);
                     fetchConsignments(pagination.current, pagination.pageSize);
                 } catch (error) {
-                    console.error('Error deleting consignment:', error);
+                    console.error('Error deleting stock out:', error);
                 }
             },
         });
@@ -165,7 +165,7 @@ const StockOuts = () => {
             </Button>
             <CustomTable
                 downloadButtonText="Export"
-                downloadFileName="Consignments"
+                downloadFileName="StockOut"
                 data={consignments}
                 isFilter={false}
                 columns={columns}
