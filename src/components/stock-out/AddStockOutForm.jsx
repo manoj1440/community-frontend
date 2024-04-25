@@ -1,0 +1,110 @@
+import React, { useEffect, useState } from 'react';
+import { Modal, Form, Input, Button, Select, InputNumber } from 'antd';
+import api from '../../utils/api';
+
+const AddStockOutForm = ({
+    warehouses,
+    commodities,
+    customers,
+    onCancel, isAddModalVisible, fetchConsignments }) => {
+
+    const [form] = Form.useForm();
+    const [maxQunatity, setMaxQunatity] = useState(0);
+
+    const onFinish = async (values) => {
+        try {
+            const response = await api.request('post', '/api/stock-out', values);
+            onCancel(false);
+            fetchConsignments();
+        } catch (error) {
+            console.error('Error adding stock-out:', error);
+        }
+    };
+
+    const fetchQuantity = async (warehouseId, commodityId) => {
+        try {
+            const response = await api.request('get', `/api/stock-in/quantity/${warehouseId}/${commodityId}`);
+            const { data } = response;
+
+            setMaxQunatity(data.quantity);
+            form.setFieldsValue({
+                quantity: data.quantity
+            });
+
+            if (form.getFieldValue('sellingPrice')) {
+                form.setFieldsValue({
+                    amount: data.quantity * form.getFieldValue('sellingPrice')
+                });
+            }
+
+        } catch (error) {
+            console.error('Error fetching Quantity:', error);
+        }
+    };
+
+    return (
+        <Modal
+            title="Add Stock Out"
+            visible={isAddModalVisible}
+            onCancel={() => onCancel(false)}
+            footer={null}
+        >
+            <Form form={form} onFinish={onFinish} layout="vertical">
+                <Form.Item label="Customer" name="customerId" rules={[{ required: true, message: 'Please enter a customer' }]}>
+                    <Select>
+                        {customers?.map((item) => (
+                            <Select.Option key={item._id} value={item._id}>
+                                {item.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+                <Form.Item label="Warehouse" name="warehouseId" rules={[{ required: true, message: 'Please enter a warehouse' }]}>
+                    <Select onChange={(value) => fetchQuantity(value, form.getFieldValue('commodityId'))}>
+                        {warehouses?.map((item) => (
+                            <Select.Option key={item._id} value={item._id}>
+                                {item.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+                <Form.Item label="Commodity" name="commodityId" rules={[{ required: true, message: 'Please enter a commodity' }]}>
+                    <Select onChange={(value) => fetchQuantity(form.getFieldValue('warehouseId'), value)}>
+                        {commodities?.map((item) => (
+                            <Select.Option key={item._id} value={item._id}>
+                                {item.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+                <Form.Item label="Quantity" name="quantity" rules={[{ required: true, message: 'Please enter a quantity' }]}>
+                    <InputNumber min={1} max={maxQunatity} onChange={() => {
+                        form.setFieldsValue({
+                            amount: form.getFieldValue('sellingPrice') * form.getFieldValue('quantity')
+                        });
+                    }} />
+                </Form.Item>
+                <Form.Item label="Selling Price" name="sellingPrice" rules={[{ required: true, message: 'Please enter a selling price' }]}>
+                    <InputNumber onChange={() => {
+                        form.setFieldsValue({
+                            amount: form.getFieldValue('sellingPrice') * form.getFieldValue('quantity')
+                        });
+                    }} />
+                </Form.Item>
+                <Form.Item label="Amount" name="amount" rules={[{ required: true, message: 'Please enter an amount' }]}>
+                    <Input disabled />
+                </Form.Item>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" disabled={form.getFieldValue('quantity') > maxQunatity}>
+                        Add Stock Out
+                    </Button>
+                    <Button onClick={() => onCancel(false)} style={{ marginLeft: 8 }}>
+                        Cancel
+                    </Button>
+                </Form.Item>
+            </Form>
+        </Modal>
+    );
+};
+
+export default AddStockOutForm;

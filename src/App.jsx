@@ -12,6 +12,7 @@ import Transporters from './components/transporter/Transporters';
 import Prices from './components/price/Prices';
 import Consignments from './components/consignment/Consignments';
 import StockIns from './components/stock-in/StockIns';
+import StockOuts from './components/stock-out/StockOuts';
 
 const App = () => {
   return (
@@ -32,6 +33,7 @@ const App = () => {
           <Route path="price" element={<Prices />} />
           <Route path="consignment" element={<Consignments />} />
           <Route path="stock-in" element={<StockIns />} />
+          <Route path="stock-out" element={<StockOuts />} />
           
         </Route>
       </Routes>
