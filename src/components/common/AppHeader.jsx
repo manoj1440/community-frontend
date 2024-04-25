@@ -34,7 +34,7 @@ const AppHeader = ({ setCollapsed, collapsed, colorBgContainer }) => {
 
     }
 
-    const { name, email, contact, location, role } = userData.user;
+    const { name, role } = userData.user;
 
     return (
         <Header
@@ -57,7 +57,11 @@ const AppHeader = ({ setCollapsed, collapsed, colorBgContainer }) => {
                         height: 64,
                     }}
                 />
-                <span style={{ textTransform: 'capitalize' }}>
+                <span style={{
+                    textTransform: 'capitalize',
+                    color: '#c20b48',
+                    fontWeight: 'bold'
+                }}>
                     | {role}
                 </span>
             </div>

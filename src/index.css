@@ -104,3 +104,11 @@ button:focus-visible {
   text-transform: capitalize !important;
   font-weight: bold;
 }
+
+.page-title-text {
+  margin-bottom: -2rem;
+  border: 2px solid #c20b48;
+  width: fit-content;
+  padding: 8px;
+  border-radius: 4px;
+}
