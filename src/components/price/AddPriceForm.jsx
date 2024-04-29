@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Form, Input, Button, Select } from 'antd';
+import { Modal, Form, Input, Button, Select, InputNumber } from 'antd';
 import api from '../../utils/api';
 
 const AddPriceForm = ({ warehouses, commodities, onCancel, isAddModalVisible, fetchPrices }) => {
@@ -47,7 +47,7 @@ const AddPriceForm = ({ warehouses, commodities, onCancel, isAddModalVisible, fe
                     </Select>
                 </Form.Item>
                 <Form.Item label="Price" name="price" rules={[{ required: true, message: 'Please enter a price' }]}>
-                    <Input type="number" />
+                    <InputNumber min={0} type="number" />
                 </Form.Item>
                 <Form.Item label="Unit" name="unit" rules={[{ required: true, message: 'Please select a role' }]}>
                     <Select>

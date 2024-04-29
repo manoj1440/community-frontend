@@ -41,6 +41,9 @@ const AddUserForm = ({ onCancel, isAddModal, fetchUsers, warehouses }) => {
                         <Select.Option value="STOCK_IN">Stock In</Select.Option>
                         <Select.Option value="STOCK_OUT">Stock Out</Select.Option>
                         <Select.Option value="STOCK_IN_OUT">Stock In-Out</Select.Option>
+                        <Select.Option value="CASH_IN">Cash In</Select.Option>
+                        <Select.Option value="CASH_OUT">Cash Out</Select.Option>
+
                     </Select>
                 </Form.Item>
 
