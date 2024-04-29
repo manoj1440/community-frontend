@@ -51,7 +51,7 @@ const StockIns = () => {
 
     return (
         <div>
-            <div className='page-title-text' >Stock In</div>
+            {/* <div className='page-title-text' >Stock In</div> */}
             <CustomTable
                 downloadButtonText="Export"
                 downloadFileName="StockIns"

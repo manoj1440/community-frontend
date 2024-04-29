@@ -1,25 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Table, Progress } from 'antd';
+import { Row, Col, Card, Statistic } from 'antd';
 import './DashboardPage.css';
 import api from '../../utils/api';
-import CustomTable from '../common/CustomTable';
+
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState({});
-  const [userOverviewDataSource, setUserOverviewDataSource] = useState([]);
+  const [commodityStats, setCommodityStats] = useState([]);
+  const [warehouseStats, setWarehouseStats] = useState([]);
 
   const fetchDashboard = async () => {
     try {
       const response = await api.request('get', '/api/dashboard');
       setDashboardData(response.data);
-      const formattedUserOverview = response.data.userOverview.map(user => ({
-        key: user._id,
-        name: user.name,
-        role: user.role,
-        batchesCreated: user.numBatchesCreated,
-        userBatches: user.userBatches,
-      }));
-      setUserOverviewDataSource(formattedUserOverview);
+      setCommodityStats(response.data.stockInCommodityStats);
+      setWarehouseStats(response.data.stockInWarehouseWiseStats);
     } catch (error) {
       console.error('Error fetching dashboardData:', error);
     }
@@ -29,41 +28,38 @@ const DashboardPage = () => {
     fetchDashboard();
   }, []);
 
-  const userOverviewColumns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Batches Assigned',
-      dataIndex: 'batchesCreated',
-      key: 'batchesCreated',
-    },
-    {
-      title: 'Total Panels',
-      dataIndex: 'userBatches',
-      key: 'userBatches',
-      render: (userBatches) => userBatches && userBatches.length > 0 ? userBatches[0].panels && userBatches[0].panels.length : 'NA'
-    },
-    {
-      title: 'Location',
-      dataIndex: 'userBatches',
-      key: 'userBatches',
-      render: (userBatches) => userBatches && userBatches.length > 0 ? userBatches[0].DeliveryLocation : 'NA'
-    },
-  ];
+
+
+  const commodityData = {
+    labels: commodityStats.map(stat => stat._id),
+    datasets: [
+      {
+        data: commodityStats.map(stat => stat.totalQuantity),
+        backgroundColor: commodityStats.map(() => `#${Math.floor(Math.random() * 16777215).toString(16)}`),
+      },
+    ],
+  };
+
+  const warehouseData = {
+    labels: warehouseStats.map(stat => `${stat._id.warehouseName} - ${stat._id.commodityName}`),
+    datasets: [
+      {
+        data: warehouseStats.map(stat => stat.totalQuantity),
+        backgroundColor: warehouseStats.map(() => `#${Math.floor(Math.random() * 16777215).toString(16)}`),
+      },
+    ],
+  };
 
   return (
     <div className="dashboard-page">
       <h1 className="dashboard-title">Statistics</h1>
-      {/* {dashboardData && (
+      {dashboardData && (
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={6}>
             <Card className="dashboard-card card-blue">
               <Statistic
-                title="Total Batches"
-                value={dashboardData.totalBatches}
+                title="Total Stock In"
+                value={dashboardData.totalStockInQuantity}
                 valueStyle={{ fontSize: '2rem' }}
               />
             </Card>
@@ -71,8 +67,8 @@ const DashboardPage = () => {
           <Col xs={24} sm={12} md={6}>
             <Card className="dashboard-card card-green">
               <Statistic
-                title="Total Panels"
-                value={dashboardData.totalPanels}
+                title="Total Farmers"
+                value={dashboardData.totalFarmersCount}
                 valueStyle={{ fontSize: '2rem' }}
               />
             </Card>
@@ -80,8 +76,8 @@ const DashboardPage = () => {
           <Col xs={24} sm={12} md={6}>
             <Card className="dashboard-card card-orange">
               <Statistic
-                title="Total Panels In Batch"
-                value={dashboardData.totalPanelsInBatch}
+                title="Total Transporters"
+                value={dashboardData.totalTransportersCount}
                 valueStyle={{ fontSize: '2rem' }}
               />
             </Card>
@@ -89,47 +85,28 @@ const DashboardPage = () => {
           <Col xs={24} sm={12} md={6}>
             <Card className="dashboard-card card-green2">
               <Statistic
-                title="Total Received Panels"
-                value={dashboardData.totalReceivedPanels}
+                title="Total Customers"
+                value={dashboardData.totalCustomersCount}
                 valueStyle={{ fontSize: '2rem' }}
               />
             </Card>
           </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card className="dashboard-card card-purple">
-              <div style={{
-                marginTop: '-2rem',
-                color: 'rgba(0, 0, 0, 0.45)'
-              }}>Received/Sent Panels</div>
-              <Progress
-                type="dashboard"
-                percent={(dashboardData.totalReceivedPanels / dashboardData.totalPanelsInBatch) * 100}
-                format={() => (
-                  <span>
-                    {dashboardData.totalReceivedPanels} / {dashboardData.totalPanelsInBatch}
-                  </span>
-                )}
-              />
-            </Card>
-          </Col>
         </Row>
-      )} */}
-      {/* {dashboardData && dashboardData.userOverview && dashboardData.userOverview.length > 0 && (
-        <div className="user-overview-table">
-          <h2>Customers Info </h2>
-          <CustomTable
-            downloadButtonText="Export"
-            downloadFileName="Users"
-            data={userOverviewDataSource}
-            isFilter={false}
-            columns={userOverviewColumns}
-            pagination={{
-              pageSize: 6,
-              hideOnSinglePage: true,
-            }}
-          />
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', textAlign: 'center' }}>
+
+        <div style={{ width: '450px' }}>
+          <h2>StockIn Commodity Stats</h2>
+          <Doughnut data={commodityData} />
         </div>
-      )} */}
+
+        <div style={{ width: '450px' }}>
+          <h2>StockIn Warehouse-Wise Stats</h2>
+          <Doughnut data={warehouseData} />
+        </div>
+
+      </div>
     </div>
   );
 };

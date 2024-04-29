@@ -33,7 +33,8 @@ const ExcelExport = ({ data, buttonText, fileName }) => {
             icon={<FileExcelOutlined />}
             style={{
                 float: 'right',
-                marginBottom: '10px'
+                marginBottom: '10px',
+                display: 'none'
             }}
             onClick={handleExportExcel} type="primary">
             {buttonText || 'Export'}

@@ -34,6 +34,16 @@ const AppSidebar = ({ collapsed, setCollapsed }) => {
             label: 'Stock In',
         },
         {
+            key: '/cash-in',
+            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            label: 'Cash In',
+        },
+        {
+            key: '/cash-out',
+            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            label: 'Cash Out',
+        },
+        {
             key: '/consignment',
             icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
             label: 'Consignment In',
