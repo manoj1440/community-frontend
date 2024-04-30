@@ -156,9 +156,15 @@ const Consignments = () => {
             key: 'quantity',
         },
         {
+            title: 'Unit',
+            dataIndex: 'unit',
+            key: 'unit',
+        },
+        {
             title: 'Rate',
             dataIndex: 'rate',
             key: 'rate',
+            render: (_, record) => (record.rate + ' per ' + record.existingUnit),
         },
         {
             title: 'Amount',

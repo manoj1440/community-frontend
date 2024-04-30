@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Button, Select, InputNumber } from 'antd';
 import api from '../../utils/api';
 
+const conversionFactors = {
+    Tons: 1000,
+    Kgs: 1,
+    Quintals: 100
+};
+
 const AddStockOutForm = ({
     warehouses,
     commodities,
@@ -10,11 +16,13 @@ const AddStockOutForm = ({
 
     const [form] = Form.useForm();
     const [maxQunatity, setMaxQunatity] = useState(0);
+    const [initialQunatity, setInitialQunatity] = useState(0);
 
     const onFinish = async (values) => {
         try {
             const response = await api.request('post', '/api/stock-out', values);
             onCancel(false);
+            form.resetFields();
             fetchConsignments();
         } catch (error) {
             console.error('Error adding stock-out:', error);
@@ -27,8 +35,10 @@ const AddStockOutForm = ({
             const { data } = response;
 
             setMaxQunatity(data.quantity);
+            setInitialQunatity(data.quantity);
             form.setFieldsValue({
-                quantity: data.quantity
+                quantity: data.quantity,
+                unit: 'Kgs'
             });
 
             if (form.getFieldValue('sellingPrice')) {
@@ -46,7 +56,10 @@ const AddStockOutForm = ({
         <Modal
             title="Add Stock Out"
             visible={isAddModalVisible}
-            onCancel={() => onCancel(false)}
+            onCancel={() => {
+                form.resetFields();
+                onCancel(false)
+            }}
             footer={null}
         >
             <Form form={form} onFinish={onFinish} layout="vertical">
@@ -77,13 +90,34 @@ const AddStockOutForm = ({
                         ))}
                     </Select>
                 </Form.Item>
-                <Form.Item label="Quantity" name="quantity" rules={[{ required: true, message: 'Please enter a quantity' }]}>
-                    <InputNumber min={1} max={maxQunatity} onChange={() => {
-                        form.setFieldsValue({
-                            amount: form.getFieldValue('sellingPrice') * form.getFieldValue('quantity')
-                        });
-                    }} />
-                </Form.Item>
+                <div style={{ display: 'flex', gap: '5px', width: '100%' }}>
+                    <Form.Item label="Quantity" name="quantity" rules={[{ required: true, message: 'Please enter a quantity' }]}>
+                        <InputNumber min={1} max={maxQunatity} onChange={() => {
+                            form.setFieldsValue({
+                                amount: form.getFieldValue('sellingPrice') * form.getFieldValue('quantity')
+                            });
+                        }} />
+                    </Form.Item>
+                    <Form.Item label="Unit" name="unit" rules={[{ required: true, message: 'Please enter a unit' }]}>
+                        <Select onChange={() => {
+                            const formQuantity = initialQunatity / conversionFactors[form.getFieldValue('unit')];
+                            setMaxQunatity(formQuantity);
+                            form.setFieldsValue({
+                                quantity: formQuantity
+                            });
+
+                            if (form.getFieldValue('sellingPrice')) {
+                                form.setFieldsValue({
+                                    amount: formQuantity * form.getFieldValue('sellingPrice')
+                                });
+                            }
+                        }}>
+                            <Select.Option value="Kgs">Kgs</Select.Option>
+                            <Select.Option value="Tons">Tons</Select.Option>
+                            <Select.Option value="Quintals">Quintals</Select.Option>
+                        </Select>
+                    </Form.Item>
+                </div>
                 <Form.Item label="Selling Price" name="sellingPrice" rules={[{ required: true, message: 'Please enter a selling price' }]}>
                     <InputNumber onChange={() => {
                         form.setFieldsValue({
@@ -98,7 +132,10 @@ const AddStockOutForm = ({
                     <Button type="primary" htmlType="submit" disabled={form.getFieldValue('quantity') > maxQunatity}>
                         Add Stock Out
                     </Button>
-                    <Button onClick={() => onCancel(false)} style={{ marginLeft: 8 }}>
+                    <Button onClick={() => {
+                        form.resetFields();
+                        onCancel(false)
+                    }} style={{ marginLeft: 8 }}>
                         Cancel
                     </Button>
                 </Form.Item>

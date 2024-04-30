@@ -68,7 +68,7 @@ const EditPrice = ({ warehouses, commodities, price, onCancel, editModalVisible,
                     <Select>
                         <Select.Option value="Kgs">Kgs</Select.Option>
                         <Select.Option value="Tons">Tons</Select.Option>
-                        <Select.Option value="Quitals">Quitals</Select.Option>
+                        <Select.Option value="Quintals">Quintals</Select.Option>
                     </Select>
                 </Form.Item>
                 <Form.Item>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Button, Select, InputNumber } from 'antd';
 import api from '../../utils/api';
 
@@ -11,9 +11,11 @@ const AddConsignmentForm = ({
 
     const [form] = Form.useForm();
 
+    const [unit, setUnit] = useState('');
+
     const onFinish = async (values) => {
         try {
-            const response = await api.request('post', '/api/consignment', values);
+            const response = await api.request('post', '/api/consignment', { ...values, existingUnit: unit });
             onCancel(false);
             fetchConsignments();
         } catch (error) {
@@ -25,15 +27,16 @@ const AddConsignmentForm = ({
         try {
             const response = await api.request('get', `/api/price/${warehouseId}/${commodityId}`);
             const { data } = response;
-            const rate = data?.historicalPrices[data.historicalPrices.length - 1]?.price
-
+            const fetchedRate = data?.historicalPrices[data.historicalPrices.length - 1]?.price
+            setUnit(data?.unit);
             form.setFieldsValue({
-                rate: rate
+                rate: fetchedRate
             });
 
             if (form.getFieldValue('quantity')) {
+                const amount = calculateAmount(fetchedRate, data?.unit, form.getFieldValue('quantity'), form.getFieldValue('unit'))
                 form.setFieldsValue({
-                    amount: rate * form.getFieldValue('quantity')
+                    amount: amount
                 });
             }
 
@@ -41,6 +44,43 @@ const AddConsignmentForm = ({
             console.error('Error fetching Price:', error);
         }
     };
+
+    const calculateAmount = (rate, rateUnit, incomingQuantity, incomingUnit) => {
+        const tonToKg = 1000;
+        const quitalToKg = 100;
+        let perKgRate;
+        switch (rateUnit.toLowerCase()) {
+            case 'tons':
+                perKgRate = rate / tonToKg;
+                break;
+            case 'kgs':
+                perKgRate = rate;
+                break;
+            case 'quintals':
+                perKgRate = rate / quitalToKg;
+                break;
+            default:
+                throw new Error('Invalid rate unit');
+        }
+
+        let convertedQuantity;
+        switch (incomingUnit.toLowerCase()) {
+            case 'tons':
+                convertedQuantity = incomingQuantity * tonToKg;
+                break;
+            case 'kgs':
+                convertedQuantity = incomingQuantity;
+                break;
+            case 'quintals':
+                convertedQuantity = incomingQuantity * quitalToKg;
+                break;
+            default:
+                throw new Error('Invalid incoming unit');
+        }
+
+        const amount = perKgRate * convertedQuantity;
+        return amount;
+    }
 
     return (
         <Modal
@@ -86,14 +126,27 @@ const AddConsignmentForm = ({
                         ))}
                     </Select>
                 </Form.Item>
+                <Form.Item label="Unit" name="unit" rules={[{ required: true, message: 'Please enter a unit' }]}>
+                    <Select onChange={() => {
+                        const amount = calculateAmount(form.getFieldValue('rate'), unit, form.getFieldValue('quantity'), form.getFieldValue('unit'))
+                        form.setFieldsValue({
+                            amount: amount
+                        });
+                    }}>
+                        <Select.Option value="Kgs">Kgs</Select.Option>
+                        <Select.Option value="Tons">Tons</Select.Option>
+                        <Select.Option value="Quintals">Quintals</Select.Option>
+                    </Select>
+                </Form.Item>
                 <Form.Item label="Quantity" name="quantity" rules={[{ required: true, message: 'Please enter a quantity' }]}>
                     <InputNumber min={1} onChange={() => {
+                        const amount = calculateAmount(form.getFieldValue('rate'), unit, form.getFieldValue('quantity'), form.getFieldValue('unit'))
                         form.setFieldsValue({
-                            amount: form.getFieldValue('rate') * form.getFieldValue('quantity')
+                            amount: amount
                         });
                     }} />
                 </Form.Item>
-                <Form.Item label="Rate" name="rate" rules={[{ required: true, message: 'Please enter a rate' }]}>
+                <Form.Item label={`Rate per ${unit}`} name="rate" rules={[{ required: true, message: 'Please enter a rate' }]}>
                     <Input disabled />
                 </Form.Item>
                 <Form.Item label="Amount" name="amount" rules={[{ required: true, message: 'Please enter an amount' }]}>

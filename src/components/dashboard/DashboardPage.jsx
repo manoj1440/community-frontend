@@ -58,7 +58,7 @@ const DashboardPage = () => {
           <Col xs={24} sm={12} md={6}>
             <Card className="dashboard-card card-blue">
               <Statistic
-                title="Total Stock In"
+                title="Total Stock In (In Kgs)"
                 value={dashboardData.totalStockInQuantity}
                 valueStyle={{ fontSize: '2rem' }}
               />
@@ -97,12 +97,12 @@ const DashboardPage = () => {
       <div style={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', textAlign: 'center' }}>
 
         <div style={{ width: '450px' }}>
-          <h2>StockIn Commodity Stats</h2>
+          <h2>StockIn Commodity Stats (In Kgs)</h2>
           <Doughnut data={commodityData} />
         </div>
 
         <div style={{ width: '450px' }}>
-          <h2>StockIn Warehouse-Wise Stats</h2>
+          <h2>StockIn Warehouse-Wise Stats  (In Kgs)</h2>
           <Doughnut data={warehouseData} />
         </div>
 

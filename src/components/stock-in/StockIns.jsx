@@ -47,6 +47,11 @@ const StockIns = () => {
             dataIndex: 'quantity',
             key: 'quantity',
         },
+        {
+            title: 'unit',
+            dataIndex: 'unit',
+            key: 'unit',
+        },
     ];
 
     return (
