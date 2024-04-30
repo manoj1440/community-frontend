@@ -118,6 +118,12 @@ const Consignments = () => {
 
     const columns = [
         {
+            title: 'Consignment ID',
+            dataIndex: 'consignmentId',
+            key: 'consignmentId',
+            render: (consignmentId) => consignmentId ? consignmentId : 'NA'
+        },
+        {
             title: 'Farmer',
             dataIndex: 'farmerId',
             key: 'farmerId',
