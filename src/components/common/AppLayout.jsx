@@ -6,6 +6,9 @@ import AppSidebar from './AppSidebar';
 import { Footer } from 'antd/es/layout/layout';
 import AppHeader from './AppHeader';
 const { Content } = Layout;
+
+import { permissionmap, defaultRoutemap } from '../../utils/config';
+
 const AppLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const { token: { colorBgContainer } } = theme.useToken();
@@ -23,14 +26,18 @@ const AppLayout = () => {
         }
 
         if (userData && isLoginPage) {
-            navigate('/dashboard');
+            navigate(defaultRoutemap[userData.user.role]);
+        }
+
+        if (userData.user.role !== 'ADMIN' && userData && !isLoginPage && !permissionmap[userData.user.role].includes(location.pathname)) {
+            navigate(defaultRoutemap[userData.user.role]);
         }
 
         if (!userData && !isLoginPage) {
             navigate('/login');
             localStorage.clear();
         }
-    }, [isLoginPage, navigate, location]);
+    }, [isLoginPage, location]);
 
     if (isLoginPage) {
         return <Outlet />;
@@ -55,6 +62,7 @@ const AppLayout = () => {
                         padding: 24,
                         minHeight: 280,
                         background: colorBgContainer,
+                        overflow: 'auto'
                     }}
                 >
                     <Outlet />

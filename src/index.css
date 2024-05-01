@@ -93,6 +93,7 @@ button:focus-visible {
   border-radius: 5px;
   cursor: pointer;
   text-align: center;
+  width: max-content;
 }
 
 .table-rendor-button:hover {
@@ -111,4 +112,15 @@ button:focus-visible {
   width: fit-content;
   padding: 8px;
   border-radius: 4px;
+}
+
+
+.popover-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 5px;
+  border: 1px solid gray;
+  padding: 5px;
+  border-radius: 5px;
 }

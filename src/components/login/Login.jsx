@@ -9,7 +9,7 @@ import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import './Login.css';
 import logo from '../../assets/logo.png';
 import loginbg from '../../assets/loginbg.png';
-
+import { defaultRoutemap } from "../../utils/config";
 
 const Login = () => {
     const [form] = Form.useForm();
@@ -27,7 +27,9 @@ const Login = () => {
                 }
                 if (response.status) {
                     localStorage.setItem('user', JSON.stringify(response.data));
-                    navigate("/dashboard");
+                    const role = response.data.user.role
+
+                    navigate(defaultRoutemap[role]);
                     form.resetFields();
                 }
             })

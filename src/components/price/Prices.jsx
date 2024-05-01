@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Space, Button } from 'antd';
+import { Modal, Space, Button, Popover } from 'antd';
 import api from '../../utils/api';
 import EditPrice from './EditPrice';
 import AddPriceForm from './AddPriceForm';
 import CustomTable from '../common/CustomTable';
+import { readableDate } from '../../utils/config';
 
 const Prices = () => {
     const [warehouses, setWarehouses] = useState([]);
@@ -98,8 +99,16 @@ const Prices = () => {
             title: 'Warehouse',
             dataIndex: 'warehouseId',
             key: 'warehouseId',
+            filters: prices.map((item) => {
+                return {
+                    text: item.warehouseId.name,
+                    value: item.warehouseId.name,
+                }
+            }),
+            filterMode: 'tree',
+            filterSearch: true,
+            onFilter: (value, record) => record.warehouseId.name.startsWith(value),
             render: (warehouseId) => warehouseId ? warehouseId.name : 'NA'
-
         },
         {
             title: 'Price',
@@ -112,6 +121,35 @@ const Prices = () => {
             dataIndex: 'unit',
             key: 'unit',
         },
+        {
+            title: 'Last Updated',
+            dataIndex: 'historicalPrices',
+            key: 'historicalPrices',
+            defaultSortOrder: 'descend',
+            sorter: (a, b) => new Date(a.historicalPrices[a.historicalPrices.length - 1].date) - new Date(b.historicalPrices[a.historicalPrices.length - 1].date),
+            render: (historicalPrices) => (historicalPrices.length > 0 ? readableDate(historicalPrices[historicalPrices.length - 1].date) : 'N/A'),
+        },
+        {
+            title: 'View All',
+            dataIndex: 'historicalPrices',
+            key: 'price',
+            render: (_, record) => (
+                record.historicalPrices && record.historicalPrices.length > 0 ?
+                    <Popover
+                        content={record.historicalPrices.map((item, index) => {
+                            return (<div key={index} className='popover-content'>
+                                <div>Price : {item.price}</div>
+                                <div>Date : {readableDate(item.date)}</div>
+                            </div>)
+                        })}
+                        trigger="hover"
+                    >
+                        <div className='table-rendor-button'>Hover to view</div>
+                    </Popover>
+                    : 'NA'
+            ),
+        },
+
         {
             title: 'Actions',
             dataIndex: '_id',

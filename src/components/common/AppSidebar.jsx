@@ -12,12 +12,20 @@ import {
     PoundOutlined,
     ShopOutlined
 } from '@ant-design/icons';
+import { permissionmap } from '../../utils/config';
 
 const { Sider } = Layout;
 
 const AppSidebar = ({ collapsed, setCollapsed }) => {
     const location = useLocation();
     const navigate = useNavigate();
+    let userData = { user: { name: "", email: "", contact: "", location: "", role: "" } };
+    try {
+        userData = JSON.parse(localStorage.getItem('user')) || { user: { name: "", email: "", contact: "", location: "", role: "" } };
+    } catch (error) {
+
+    }
+    const { role } = userData.user;
 
     const handleMenuClick = ({ key }) => {
         navigate(key);
@@ -105,9 +113,9 @@ const AppSidebar = ({ collapsed, setCollapsed }) => {
             <Menu
                 onClick={handleMenuClick}
                 style={{ fontSize: '1rem' }}
-                defaultSelectedKeys={[location.pathname]} // Set default based on current route
+                defaultSelectedKeys={[location.pathname]}
             >
-                {menuItems.map((item) => (
+                {menuItems.map((item) => (role && (permissionmap[role].includes(item.key) || role === 'ADMIN') &&
                     <Menu.Item key={item.key} icon={item.icon}>
                         <Link to={item.key}>{item.label}</Link>
                     </Menu.Item>

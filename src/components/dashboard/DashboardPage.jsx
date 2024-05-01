@@ -96,12 +96,12 @@ const DashboardPage = () => {
 
       <div style={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', textAlign: 'center' }}>
 
-        <div style={{ width: '450px' }}>
+        <div style={{ width: '350px' }}>
           <h2>StockIn Commodity Stats (In Kgs)</h2>
           <Doughnut data={commodityData} />
         </div>
 
-        <div style={{ width: '450px' }}>
+        <div style={{ width: '350px' }}>
           <h2>StockIn Warehouse-Wise Stats  (In Kgs)</h2>
           <Doughnut data={warehouseData} />
         </div>

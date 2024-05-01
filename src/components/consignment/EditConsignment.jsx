@@ -11,9 +11,6 @@ const EditConsignment = ({
     consignment, onCancel, editModalVisible, fetchConsignments }) => {
     const [form] = Form.useForm();
 
-    console.log('consignment===', consignment);
-    console.log('form===', form);
-
     useEffect(() => {
         form.resetFields();
 
