@@ -45,6 +45,9 @@ const EditUser = ({ user, onCancel, editModalVisible, fetchUsers, warehouses }) 
                 <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Please enter an email' }]}>
                     <Input />
                 </Form.Item>
+                {/* <Form.Item label="Password (length should be greater than 8)" name="password" rules={[{ required: true, message: 'Please enter a password' }]}>
+                    <Input.Password />
+                </Form.Item> */}
                 <Form.Item label="Contact" name="contact" rules={[{ required: true, message: 'Please enter a contact number' }]}>
                     <InputNumber style={{
                         width: '100%'

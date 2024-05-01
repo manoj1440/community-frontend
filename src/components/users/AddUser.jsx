@@ -29,11 +29,11 @@ const AddUserForm = ({ onCancel, isAddModal, fetchUsers, warehouses }) => {
                 <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Please enter an email' }]}>
                     <Input />
                 </Form.Item>
-                <Form.Item label="Password" name="password" rules={[{ required: true, message: 'Please enter a password' }]}>
+                <Form.Item label="Password (length should be greater than 8)" name="password" rules={[{ required: true, message: 'Please enter a password' }]}>
                     <Input.Password />
                 </Form.Item>
                 <Form.Item label="Contact" name="contact">
-                <InputNumber style={{
+                    <InputNumber style={{
                         width: '100%'
                     }} />
                 </Form.Item>

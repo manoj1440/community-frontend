@@ -121,7 +121,7 @@ const AddConsignmentForm = ({
                     <Select>
                         {transporters?.map((item) => (
                             <Select.Option key={item._id} value={item._id}>
-                                {item.transportAgency}
+                                {item.driverName}-{item.transportAgency}
                             </Select.Option>
                         ))}
                     </Select>
