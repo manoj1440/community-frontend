@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, Select, Button, Modal } from 'antd';
+import { Form, Input, Select, Button, Modal, InputNumber } from 'antd';
 import api from '../../utils/api';
 
 const EditUser = ({ user, onCancel, editModalVisible, fetchUsers, warehouses }) => {
@@ -46,7 +46,9 @@ const EditUser = ({ user, onCancel, editModalVisible, fetchUsers, warehouses }) 
                     <Input />
                 </Form.Item>
                 <Form.Item label="Contact" name="contact" rules={[{ required: true, message: 'Please enter a contact number' }]}>
-                    <Input />
+                    <InputNumber style={{
+                        width: '100%'
+                    }} />
                 </Form.Item>
                 <Form.Item label="Role" name="role" rules={[{ required: true, message: 'Please select a role' }]}>
                     <Select>

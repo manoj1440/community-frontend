@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Form, Input, Select, Button } from 'antd';
+import { Modal, Form, Input, Select, Button, InputNumber } from 'antd';
 import api from '../../utils/api';
 
 const AddUserForm = ({ onCancel, isAddModal, fetchUsers, warehouses }) => {
@@ -33,7 +33,9 @@ const AddUserForm = ({ onCancel, isAddModal, fetchUsers, warehouses }) => {
                     <Input.Password />
                 </Form.Item>
                 <Form.Item label="Contact" name="contact">
-                    <Input />
+                <InputNumber style={{
+                        width: '100%'
+                    }} />
                 </Form.Item>
                 <Form.Item label="Role" name="role" rules={[{ required: true, message: 'Please select a role' }]}>
                     <Select>

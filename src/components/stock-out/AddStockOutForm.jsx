@@ -27,8 +27,6 @@ const AddStockOutForm = ({
     const { role, warehouseId } = userData.user
 
     useEffect(() => {
-        form.resetFields();
-
         if (role !== 'ADMIN') {
             form.setFieldsValue({
                 warehouseId: warehouseId?._id || warehouseId,

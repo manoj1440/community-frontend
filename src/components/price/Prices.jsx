@@ -126,7 +126,7 @@ const Prices = () => {
             dataIndex: 'historicalPrices',
             key: 'historicalPrices',
             defaultSortOrder: 'descend',
-            sorter: (a, b) => new Date(a.historicalPrices[a.historicalPrices.length - 1].date) - new Date(b.historicalPrices[a.historicalPrices.length - 1].date),
+            sorter: (a, b) => new Date(a.historicalPrices[a.historicalPrices.length - 1]?.date) - new Date(b.historicalPrices[a.historicalPrices.length - 1]?.date),
             render: (historicalPrices) => (historicalPrices.length > 0 ? readableDate(historicalPrices[historicalPrices.length - 1].date) : 'N/A'),
         },
         {

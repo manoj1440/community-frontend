@@ -33,7 +33,7 @@ const CashOuts = () => {
     const handleTransfered = (consignmentId, isRemoved = false) => {
         Modal.confirm({
             title: 'Confirm Cash Out',
-            content: `This will mark this cash as ${isRemoved ? 'not' : ''} transfered ?`,
+            content: `This will mark this cash as ${isRemoved ? 'not' : ''} Transferred ?`,
             onOk: async () => {
                 try {
                     const response = await api.request('put', `/api/consignment/${consignmentId}`, { transfered: isRemoved ? 'No' : 'Yes' });
@@ -72,7 +72,7 @@ const CashOuts = () => {
             key: 'amount',
         },
         {
-            title: 'Transfered',
+            title: 'Transferred',
             dataIndex: 'transfered',
             key: 'transfered',
             render: (transfered) => (<span style={{ color: (transfered && transfered.toLowerCase() === 'yes') ? 'green' : 'red' }}>{transfered}</span>)
@@ -86,7 +86,7 @@ const CashOuts = () => {
                     <Button
                         style={{ backgroundColor: (record.transfered && record.transfered.toLowerCase() === 'yes') ? 'green' : '' }}
                         onClick={() => handleTransfered(record._id, record.transfered && record.transfered.toLowerCase() === 'yes')} type="primary">
-                        {(record.transfered && record.transfered.toLowerCase() === 'yes') ? 'Remove Transfered' : 'Mark Transfered'}
+                        {(record.transfered && record.transfered.toLowerCase() === 'yes') ? 'Remove Transferred' : 'Mark Transferred'}
                     </Button>
                 </Space>
             ),

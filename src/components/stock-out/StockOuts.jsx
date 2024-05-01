@@ -135,7 +135,7 @@ const StockOuts = () => {
             key: 'unit',
         },
         {
-            title: 'Selliong Price',
+            title: 'Selling Price',
             dataIndex: 'sellingPrice',
             key: 'sellingPrice',
         },
