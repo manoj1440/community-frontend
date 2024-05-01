@@ -18,6 +18,24 @@ const AddStockOutForm = ({
     const [maxQunatity, setMaxQunatity] = useState(0);
     const [initialQunatity, setInitialQunatity] = useState(0);
 
+    let userData = { user: { name: "", email: "", contact: "", location: "", role: "" } };
+    try {
+        userData = JSON.parse(localStorage.getItem('user')) || { user: { name: "", email: "", contact: "", location: "", role: "" } };
+    } catch (error) {
+
+    }
+    const { role, warehouseId } = userData.user
+
+    useEffect(() => {
+        form.resetFields();
+
+        if (role !== 'ADMIN') {
+            form.setFieldsValue({
+                warehouseId: warehouseId?._id || warehouseId,
+            });
+        }
+    }, [role, warehouseId]);
+
     const onFinish = async (values) => {
         try {
             const response = await api.request('post', '/api/stock-out', values);
@@ -42,12 +60,23 @@ const AddStockOutForm = ({
             });
 
             if (form.getFieldValue('sellingPrice')) {
-                form.setFieldsValue({
-                    amount: data.quantity * form.getFieldValue('sellingPrice')
-                });
+
+                const calcAmount = data.quantity * form.getFieldValue('sellingPrice')
+                if (!Number.isNaN(calcAmount)) {
+                    form.setFieldsValue({
+                        amount: calcAmount
+                    });
+                }
             }
 
         } catch (error) {
+            setMaxQunatity(0);
+            setInitialQunatity(0);
+            form.setFieldsValue({
+                quantity: 0,
+                unit: 'Kgs',
+                amount: ''
+            });
             console.error('Error fetching Quantity:', error);
         }
     };
@@ -73,7 +102,7 @@ const AddStockOutForm = ({
                     </Select>
                 </Form.Item>
                 <Form.Item label="Warehouse" name="warehouseId" rules={[{ required: true, message: 'Please enter a warehouse' }]}>
-                    <Select onChange={(value) => fetchQuantity(value, form.getFieldValue('commodityId'))}>
+                    <Select disabled={role !== 'ADMIN'} onChange={(value) => fetchQuantity(value, form.getFieldValue('commodityId'))}>
                         {warehouses?.map((item) => (
                             <Select.Option key={item._id} value={item._id}>
                                 {item.name}
@@ -129,7 +158,7 @@ const AddStockOutForm = ({
                     <Input disabled />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" htmlType="submit" disabled={form.getFieldValue('quantity') > maxQunatity}>
+                    <Button type="primary" htmlType="submit" disabled={(form.getFieldValue('quantity') > maxQunatity) || (!initialQunatity || initialQunatity <= 0)}>
                         Add Stock Out
                     </Button>
                     <Button onClick={() => {

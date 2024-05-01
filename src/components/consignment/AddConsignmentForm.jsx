@@ -13,6 +13,24 @@ const AddConsignmentForm = ({
 
     const [unit, setUnit] = useState('');
 
+    let userData = { user: { name: "", email: "", contact: "", location: "", role: "" } };
+    try {
+        userData = JSON.parse(localStorage.getItem('user')) || { user: { name: "", email: "", contact: "", location: "", role: "" } };
+    } catch (error) {
+
+    }
+    const { role, warehouseId } = userData.user
+
+    useEffect(() => {
+        form.resetFields();
+
+        if (role !== 'ADMIN') {
+            form.setFieldsValue({
+                warehouseId: warehouseId?._id || warehouseId,
+            });
+        }
+    }, []);
+
     const onFinish = async (values) => {
         try {
             const response = await api.request('post', '/api/consignment', { ...values, existingUnit: unit });
@@ -109,7 +127,7 @@ const AddConsignmentForm = ({
                     </Select>
                 </Form.Item>
                 <Form.Item label="Warehouse" name="warehouseId" rules={[{ required: true, message: 'Please enter a warehouse' }]}>
-                    <Select onChange={(value) => fetchPrice(value, form.getFieldValue('commodityId'))}>
+                    <Select disabled={role !== 'ADMIN'} onChange={(value) => fetchPrice(value, form.getFieldValue('commodityId'))}>
                         {warehouses?.map((item) => (
                             <Select.Option key={item._id} value={item._id}>
                                 {item.name}

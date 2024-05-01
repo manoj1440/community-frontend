@@ -25,11 +25,11 @@ const AppLayout = () => {
 
         }
 
-        if (userData && isLoginPage) {
+        if (userData && userData.user && isLoginPage) {
             navigate(defaultRoutemap[userData.user.role]);
         }
 
-        if (userData.user.role !== 'ADMIN' && userData && !isLoginPage && !permissionmap[userData.user.role].includes(location.pathname)) {
+        if (userData && userData.user && userData.user.role !== 'ADMIN' && !isLoginPage && !permissionmap[userData.user.role].includes(location.pathname)) {
             navigate(defaultRoutemap[userData.user.role]);
         }
 
