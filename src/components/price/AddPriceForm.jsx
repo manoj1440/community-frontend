@@ -62,8 +62,8 @@ const AddPriceForm = ({ warehouses, commodities, onCancel, isAddModalVisible, fe
                     <Form.Item label="Unit" name="unit" rules={[{ required: true, message: 'Please select a role' }]}>
                         <Select>
                             <Select.Option value="Kgs">Kgs</Select.Option>
-                            <Select.Option value="Tons">Tons</Select.Option>
-                            <Select.Option value="Quintals">Quintals</Select.Option>
+                            {/* <Select.Option value="Tons">Tons</Select.Option>
+                            <Select.Option value="Quintals">Quintals</Select.Option> */}
                         </Select>
                     </Form.Item>
                     <Form.Item>

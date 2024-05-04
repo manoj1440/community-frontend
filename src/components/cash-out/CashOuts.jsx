@@ -30,13 +30,13 @@ const CashOuts = () => {
         }
     };
 
-    const handleTransfered = (consignmentId, isRemoved = false) => {
+    const handletransferred = (consignmentId, isRemoved = false) => {
         Modal.confirm({
             title: 'Confirm Cash Out',
             content: `This will mark this cash as ${isRemoved ? 'not' : ''} Transferred ?`,
             onOk: async () => {
                 try {
-                    const response = await api.request('put', `/api/consignment/${consignmentId}`, { transfered: isRemoved ? 'No' : 'Yes' });
+                    const response = await api.request('put', `/api/consignment/${consignmentId}`, { transferred: isRemoved ? 'No' : 'Yes' });
                     fetchConsignments();
                 } catch (error) {
                     console.error('Error updating cash out:', error);
@@ -73,9 +73,9 @@ const CashOuts = () => {
         },
         {
             title: 'Transferred',
-            dataIndex: 'transfered',
-            key: 'transfered',
-            render: (transfered) => (<span style={{ color: (transfered && transfered.toLowerCase() === 'yes') ? 'green' : 'red' }}>{transfered}</span>)
+            dataIndex: 'transferred',
+            key: 'transferred',
+            render: (transferred) => (<span style={{ color: (transferred && transferred.toLowerCase() === 'yes') ? 'green' : 'red' }}>{transferred}</span>)
         },
         {
             title: 'Actions',
@@ -84,9 +84,9 @@ const CashOuts = () => {
             render: (_, record) => (
                 <Space size="middle">
                     <Button
-                        style={{ backgroundColor: (record.transfered && record.transfered.toLowerCase() === 'yes') ? 'green' : '' }}
-                        onClick={() => handleTransfered(record._id, record.transfered && record.transfered.toLowerCase() === 'yes')} type="primary">
-                        {(record.transfered && record.transfered.toLowerCase() === 'yes') ? 'Remove Transferred' : 'Mark Transferred'}
+                        style={{ backgroundColor: (record.transferred && record.transferred.toLowerCase() === 'yes') ? 'green' : '' }}
+                        onClick={() => handletransferred(record._id, record.transferred && record.transferred.toLowerCase() === 'yes')} type="primary">
+                        {(record.transferred && record.transferred.toLowerCase() === 'yes') ? 'Remove Transferred' : 'Mark Transferred'}
                     </Button>
                 </Space>
             ),

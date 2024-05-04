@@ -1,30 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Space, Button } from 'antd';
 import api from '../../utils/api';
-import EditStockOut from './EditStockOut';
-import AddStockOutForm from './AddStockOutForm';
+// import EditStockOut from './EditStockOut';
+// import AddStockOutForm from './AddStockOutForm';
 import CustomTable from '../common/CustomTable';
 
 const StockOuts = () => {
     const [consignments, setConsignments] = useState([]);
-    const [warehouses, setWarehouses] = useState([]);
-    const [commodities, setCommodities] = useState([]);
-    const [customers, setCustomers] = useState([]);
+    // const [warehouses, setWarehouses] = useState([]);
+    // const [commodities, setCommodities] = useState([]);
+    // const [customers, setCustomers] = useState([]);
 
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 10,
     });
 
-    const [editModalVisible, setEditModalVisible] = useState(false);
-    const [editConsignmentData, setEditConsignmentData] = useState({});
-    const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+    // const [editModalVisible, setEditModalVisible] = useState(false);
+    // const [editConsignmentData, setEditConsignmentData] = useState({});
+    // const [isAddModalVisible, setIsAddModalVisible] = useState(false);
 
     useEffect(() => {
         fetchConsignments(pagination.current, pagination.pageSize);
-        fetchWarehouses();
-        fetchCustomers();
-        fetchCommodities();
+        // fetchWarehouses();
+        // fetchCustomers();
+        // fetchCommodities();
     }, []);
 
     const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
@@ -163,11 +163,11 @@ const StockOuts = () => {
 
     return (
         <div>
-            <Button
+            {/* <Button
                 style={{ marginBottom: 10 }}
                 onClick={() => setIsAddModalVisible(true)} type="primary">
                 Add Stock Out
-            </Button>
+            </Button> */}
             <CustomTable
                 downloadButtonText="Export"
                 downloadFileName="StockOut"
@@ -176,7 +176,7 @@ const StockOuts = () => {
                 columns={columns}
                 pagination={pagination}
             />
-            <EditStockOut
+            {/* <EditStockOut
                 fetchConsignments={fetchConsignments}
                 editModalVisible={editModalVisible}
                 consignment={{ ...editConsignmentData }}
@@ -194,7 +194,7 @@ const StockOuts = () => {
                 commodities={commodities}
                 customers={customers}
 
-            />
+            /> */}
         </div>
     );
 };

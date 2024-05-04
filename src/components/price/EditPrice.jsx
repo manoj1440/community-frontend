@@ -65,7 +65,7 @@ const EditPrice = ({ warehouses, commodities, price, onCancel, editModalVisible,
                     <Input type="number" />
                 </Form.Item>
                 <Form.Item label="Unit" name="unit" rules={[{ required: true, message: 'Please select a role' }]}>
-                    <Select>
+                    <Select disabled>
                         <Select.Option value="Kgs">Kgs</Select.Option>
                         <Select.Option value="Tons">Tons</Select.Option>
                         <Select.Option value="Quintals">Quintals</Select.Option>
