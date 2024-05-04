@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Space, Button } from 'antd';
+import { Modal, Table } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 
@@ -9,6 +9,7 @@ const StockIns = () => {
         current: 1,
         pageSize: 10,
     });
+    const [selectedStockIn, setSelectedStockIn] = useState(null);
 
     useEffect(() => {
         fetchStockIns(pagination.current, pagination.pageSize);
@@ -29,34 +30,57 @@ const StockIns = () => {
         }
     };
 
-    const columns = [
+    const bagColumns = [
         {
-            title: 'Commodity',
-            dataIndex: 'commodityId',
-            key: 'commodityId',
-            render: (commodityId) => commodityId ? commodityId.name : 'NA'
+            title: 'No. of Bags',
+            dataIndex: 'noOfBags',
+            key: 'noOfBags',
         },
         {
-            title: 'Warehouse',
-            dataIndex: 'warehouseId',
-            key: 'warehouseId',
-            render: (warehouseId) => warehouseId ? warehouseId.name : 'NA'
+            title: 'Weight',
+            dataIndex: 'weight',
+            key: 'weight',
         },
         {
             title: 'Quantity',
             dataIndex: 'quantity',
             key: 'quantity',
         },
+    ];
+
+    const columns = [
         {
-            title: 'unit',
-            dataIndex: 'unit',
-            key: 'unit',
+            title: 'Warehouse',
+            dataIndex: ['warehouseId', 'name'],
+            key: 'warehouseId',
+        },
+        {
+            title: 'Commodity',
+            dataIndex: ['commodityId', 'name'],
+            key: 'commodityId',
+        },
+        {
+            title: 'Total Quantity',
+            dataIndex: 'totalQuantity',
+            key: 'totalQuantity',
+        },
+        {
+            title: 'Amount',
+            dataIndex: 'amount',
+            key: 'amount',
+        },
+        {
+            title: 'Bags',
+            dataIndex: 'bags',
+            key: 'bags',
+            render: (bags, record) => (
+                <a onClick={() => setSelectedStockIn(record)}>View Bags</a>
+            ),
         },
     ];
 
     return (
         <div>
-            {/* <div className='page-title-text' >Stock In</div> */}
             <CustomTable
                 downloadButtonText="Export"
                 downloadFileName="StockIns"
@@ -65,6 +89,22 @@ const StockIns = () => {
                 columns={columns}
                 pagination={pagination}
             />
+            <Modal
+                title="Bag Details"
+                open={selectedStockIn !== null}
+                onCancel={() => setSelectedStockIn(null)}
+                footer={null}
+                width={800}
+            >
+                {selectedStockIn && (
+                    <Table
+                        dataSource={selectedStockIn.bags}
+                        columns={bagColumns}
+                        pagination={false}
+                        rowKey="noOfBags"
+                    />
+                )}
+            </Modal>
         </div>
     );
 };

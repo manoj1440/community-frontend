@@ -1,32 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Space, Button } from 'antd';
+import { Modal, Space, Button, Table, Tag } from 'antd';
 import api from '../../utils/api';
-import EditConsignment from './EditConsignment';
-import AddConsignmentForm from './AddConsignmentForm';
 import CustomTable from '../common/CustomTable';
 
 const Consignments = () => {
     const [consignments, setConsignments] = useState([]);
-    const [warehouses, setWarehouses] = useState([]);
-    const [transporters, setTransporters] = useState([]);
-    const [commodities, setCommodities] = useState([]);
-    const [farmers, setFarmers] = useState([]);
-
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 10,
     });
-
-    const [editModalVisible, setEditModalVisible] = useState(false);
-    const [editConsignmentData, setEditConsignmentData] = useState({});
-    const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+    const [selectedCommodity, setSelectedCommodity] = useState(null);
 
     useEffect(() => {
         fetchConsignments(pagination.current, pagination.pageSize);
-        fetchWarehouses();
-        fetchFarmers();
-        fetchCommodities();
-        fetchTransportes();
     }, []);
 
     const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
@@ -42,62 +28,6 @@ const Consignments = () => {
         } catch (error) {
             console.error('Error fetching consignments:', error);
         }
-    };
-
-    const fetchWarehouses = async () => {
-        try {
-            const response = await api.request('get', '/api/warehouse');
-            const { data } = response;
-            setWarehouses(data);
-        } catch (error) {
-            console.error('Error fetching warehouses:', error);
-        }
-    };
-
-    const fetchFarmers = async () => {
-        try {
-            const response = await api.request('get', '/api/farmer');
-            const { data } = response;
-            setFarmers(data);
-        } catch (error) {
-            console.error('Error fetching farmer:', error);
-        }
-    };
-
-    const fetchCommodities = async () => {
-        try {
-            const response = await api.request('get', '/api/commodity');
-            const { data } = response;
-            setCommodities(data);
-        } catch (error) {
-            console.error('Error fetching commodity:', error);
-        }
-    };
-
-    const fetchTransportes = async () => {
-        try {
-            const response = await api.request('get', '/api/transporter');
-            const { data } = response;
-            setTransporters(data);
-        } catch (error) {
-            console.error('Error fetching transporters:', error);
-        }
-    };
-
-
-    const showEditModal = (record) => {
-        setEditConsignmentData(record);
-        setEditModalVisible(true);
-    };
-
-    const handleEditModalClose = () => {
-        setEditModalVisible(false);
-        setEditConsignmentData({});
-    };
-
-    const handleAddModalClose = () => {
-        setIsAddModalVisible(false);
-        setEditConsignmentData({});
     };
 
     const handleDeleteConsignment = (consignmentId) => {
@@ -116,6 +46,42 @@ const Consignments = () => {
         });
     };
 
+    const commodityColumns = [
+        {
+            title: 'Commodity',
+            dataIndex: ['commodityId', 'name'],
+            key: 'commodityId',
+        },
+        {
+            title: 'Total Quantity',
+            dataIndex: 'totalQuantity',
+            key: 'totalQuantity',
+        },
+        {
+            title: 'Amount',
+            dataIndex: 'amount',
+            key: 'amount',
+        },
+    ];
+
+    const bagColumns = [
+        {
+            title: 'No. of Bags',
+            dataIndex: 'noOfBags',
+            key: 'noOfBags',
+        },
+        {
+            title: 'Weight (Each Bag)',
+            dataIndex: 'weight',
+            key: 'weight',
+        },
+        {
+            title: 'Quantity',
+            dataIndex: 'quantity',
+            key: 'quantity',
+        },
+    ];
+
     const columns = [
         {
             title: 'Consignment ID',
@@ -125,51 +91,42 @@ const Consignments = () => {
         },
         {
             title: 'Farmer',
-            dataIndex: 'farmerId',
+            dataIndex: ['farmerId', 'name'],
             key: 'farmerId',
-            render: (farmerId) => farmerId ? farmerId.name : 'NA'
         },
         {
             title: 'Transporter',
-            dataIndex: 'transporterId',
+            dataIndex: ['transporterId', 'transportAgency'],
             key: 'transporterId',
-            render: (transporterId) => transporterId ? transporterId.transportAgency : 'NA'
-
         },
         {
             title: 'Warehouse',
-            dataIndex: 'warehouseId',
+            dataIndex: ['warehouseId', 'name'],
             key: 'warehouseId',
-            render: (warehouseId) => warehouseId ? warehouseId.name : 'NA'
-
         },
         {
-            title: 'Commodity',
-            dataIndex: 'commodityId',
-            key: 'commodityId',
-            render: (commodityId) => commodityId ? commodityId.name : 'NA'
-
+            title: 'Commodities',
+            dataIndex: 'commodity',
+            key: 'commodity',
+            render: (commodities) => (
+                <div>
+                    {commodities.map((commodity, index) => (
+                        <Tag
+                            key={index}
+                            color="geekblue"
+                            style={{ marginBottom: 4, cursor: 'pointer' }}
+                            onClick={() => setSelectedCommodity(commodity)}
+                        >
+                            {commodity.commodityId.name}
+                        </Tag>
+                    ))}
+                </div>
+            ),
         },
         {
-            title: 'Quantity',
-            dataIndex: 'quantity',
-            key: 'quantity',
-        },
-        {
-            title: 'Unit',
-            dataIndex: 'unit',
-            key: 'unit',
-        },
-        {
-            title: 'Rate',
-            dataIndex: 'rate',
-            key: 'rate',
-            render: (_, record) => (record.rate + ' per ' + record.existingUnit),
-        },
-        {
-            title: 'Amount',
-            dataIndex: 'amount',
-            key: 'amount',
+            title: 'Total Amount',
+            dataIndex: 'totalAmount',
+            key: 'totalAmount',
         },
         {
             title: 'Actions',
@@ -177,9 +134,6 @@ const Consignments = () => {
             key: 'actions',
             render: (_, record) => (
                 <Space size="middle">
-                    {/* <Button onClick={() => showEditModal(record)} type="primary">
-                        Edit
-                    </Button> */}
                     <Button onClick={() => handleDeleteConsignment(record._id)} type="danger">
                         Delete
                     </Button>
@@ -190,11 +144,6 @@ const Consignments = () => {
 
     return (
         <div>
-            <Button
-                style={{ marginBottom: 10 }}
-                onClick={() => setIsAddModalVisible(true)} type="primary">
-                Add Consignment
-            </Button>
             <CustomTable
                 downloadButtonText="Export"
                 downloadFileName="Consignments"
@@ -203,27 +152,34 @@ const Consignments = () => {
                 columns={columns}
                 pagination={pagination}
             />
-            <EditConsignment
-                fetchConsignments={fetchConsignments}
-                editModalVisible={editModalVisible}
-                consignment={{ ...editConsignmentData }}
-                onCancel={handleEditModalClose}
-                warehouses={warehouses}
-                transporters={transporters}
-                commodities={commodities}
-                farmers={farmers}
-
-            />
-            <AddConsignmentForm
-                isAddModalVisible={isAddModalVisible}
-                fetchConsignments={fetchConsignments}
-                onCancel={handleAddModalClose}
-                warehouses={warehouses}
-                transporters={transporters}
-                commodities={commodities}
-                farmers={farmers}
-
-            />
+            <Modal
+                title="Commodity Details"
+                open={selectedCommodity !== null}
+                onCancel={() => setSelectedCommodity(null)}
+                footer={null}
+                width={800}
+            >
+                {selectedCommodity && (
+                    <div>
+                        <Table
+                            dataSource={[selectedCommodity]}
+                            columns={commodityColumns}
+                            pagination={false}
+                            rowKey="commodityId"
+                            expandable={{
+                                expandedRowRender: (record) => (
+                                    <Table
+                                        dataSource={record.bags}
+                                        columns={bagColumns}
+                                        pagination={false}
+                                        rowKey="noOfBags"
+                                    />
+                                ),
+                            }}
+                        />
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };
