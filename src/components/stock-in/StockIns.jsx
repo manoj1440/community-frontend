@@ -9,7 +9,7 @@ const StockIns = () => {
         current: 1,
         pageSize: 10,
     });
-    const [selectedStockIn, setSelectedStockIn] = useState(null);
+    // const [selectedStockIn, setSelectedStockIn] = useState(null);
 
     useEffect(() => {
         fetchStockIns(pagination.current, pagination.pageSize);
@@ -30,23 +30,23 @@ const StockIns = () => {
         }
     };
 
-    const bagColumns = [
-        {
-            title: 'No. of Bags',
-            dataIndex: 'noOfBags',
-            key: 'noOfBags',
-        },
-        {
-            title: 'Weight',
-            dataIndex: 'weight',
-            key: 'weight',
-        },
-        {
-            title: 'Quantity',
-            dataIndex: 'quantity',
-            key: 'quantity',
-        },
-    ];
+    // const bagColumns = [
+    //     {
+    //         title: 'No. of Bags',
+    //         dataIndex: 'noOfBags',
+    //         key: 'noOfBags',
+    //     },
+    //     {
+    //         title: 'Weight',
+    //         dataIndex: 'weight',
+    //         key: 'weight',
+    //     },
+    //     {
+    //         title: 'Quantity',
+    //         dataIndex: 'quantity',
+    //         key: 'quantity',
+    //     },
+    // ];
 
     const columns = [
         {
@@ -64,19 +64,19 @@ const StockIns = () => {
             dataIndex: 'totalQuantity',
             key: 'totalQuantity',
         },
-        {
-            title: 'Amount',
-            dataIndex: 'amount',
-            key: 'amount',
-        },
-        {
-            title: 'Bags',
-            dataIndex: 'bags',
-            key: 'bags',
-            render: (bags, record) => (
-                <a onClick={() => setSelectedStockIn(record)}>View Bags</a>
-            ),
-        },
+        // {
+        //     title: 'Amount',
+        //     dataIndex: 'amount',
+        //     key: 'amount',
+        // },
+        // {
+        //     title: 'Bags',
+        //     dataIndex: 'bags',
+        //     key: 'bags',
+        //     render: (bags, record) => (
+        //         <a onClick={() => setSelectedStockIn(record)}>View Bags</a>
+        //     ),
+        // },
     ];
 
     return (
@@ -89,7 +89,7 @@ const StockIns = () => {
                 columns={columns}
                 pagination={pagination}
             />
-            <Modal
+            {/* <Modal
                 title="Bag Details"
                 open={selectedStockIn !== null}
                 onCancel={() => setSelectedStockIn(null)}
@@ -104,7 +104,7 @@ const StockIns = () => {
                         rowKey="noOfBags"
                     />
                 )}
-            </Modal>
+            </Modal> */}
         </div>
     );
 };

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Space, Button } from 'antd';
+import { Modal, Button, Table, Tag } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 
 const CashIns = () => {
     const [consignments, setConsignments] = useState([]);
-
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 10,
     });
+    const [selectedCommodity, setSelectedCommodity] = useState(null);
 
     useEffect(() => {
         fetchConsignments(pagination.current, pagination.pageSize);
@@ -19,7 +19,13 @@ const CashIns = () => {
         try {
             const response = await api.request('get', '/api/stock-out');
             const { data } = response;
-            setConsignments(data);
+            setConsignments(data.map(consignment => ({
+                ...consignment,
+                commodity: consignment.commodity.map(commodity => ({
+                    ...commodity,
+                    totalBags: commodity.bags.reduce((acc, bag) => acc + bag.noOfBags, 0)
+                }))
+            })));
             setPagination({
                 current: page,
                 pageSize,
@@ -39,37 +45,59 @@ const CashIns = () => {
                     const response = await api.request('put', `/api/stock-out/${consignmentId}`, { received: isRemoved ? 'No' : 'Yes' });
                     fetchConsignments();
                 } catch (error) {
-                    console.error('Error updating cash in:', error);
+                    console.error('Error updating cash In:', error);
                 }
             },
         });
     };
 
+    const commodityColumns = [
+        {
+            title: 'Commodity',
+            dataIndex: ['commodityId', 'name'],
+            key: 'commodityId',
+        },
+        {
+            title: 'Total Bags',
+            dataIndex: 'totalBags',
+            key: 'totalBags',
+        },
+    ];
+
     const columns = [
         {
             title: 'Customer',
-            dataIndex: 'customerId',
+            dataIndex: ['customerId', 'name'],
             key: 'customerId',
-            render: (customerId) => customerId ? customerId.name : 'NA'
         },
         {
             title: 'Warehouse',
-            dataIndex: 'warehouseId',
+            dataIndex: ['warehouseId', 'name'],
             key: 'warehouseId',
-            render: (warehouseId) => warehouseId ? warehouseId.name : 'NA'
-
         },
         {
-            title: 'Commodity',
-            dataIndex: 'commodityId',
-            key: 'commodityId',
-            render: (commodityId) => commodityId ? commodityId.name : 'NA'
-
+            title: 'Commodities',
+            dataIndex: 'commodity',
+            key: 'commodity',
+            render: (commodities) => (
+                <div>
+                    {commodities.map((commodity, index) => (
+                        <Tag
+                            key={index}
+                            color="geekblue"
+                            style={{ marginBottom: 4, cursor: 'pointer' }}
+                            onClick={() => setSelectedCommodity(commodity)}
+                        >
+                            {commodity.commodityId.name}
+                        </Tag>
+                    ))}
+                </div>
+            ),
         },
         {
-            title: 'Amount',
-            dataIndex: 'amount',
-            key: 'amount',
+            title: 'Total Amount',
+            dataIndex: 'totalAmount',
+            key: 'totalAmount',
         },
         {
             title: 'Received',
@@ -82,13 +110,11 @@ const CashIns = () => {
             dataIndex: '_id',
             key: 'actions',
             render: (_, record) => (
-                <Space size="middle">
-                    <Button
-                        style={{ backgroundColor: (record.received && record.received.toLowerCase() === 'yes') ? 'green' : '' }}
-                        onClick={() => handleReceived(record._id, record.received && record.received.toLowerCase() === 'yes')} type="primary">
-                        {(record.received && record.received.toLowerCase() === 'yes') ? 'Remove Received' : 'Mark Received'}
-                    </Button>
-                </Space>
+                <Button
+                    style={{ backgroundColor: (record.received && record.received.toLowerCase() === 'yes') ? 'green' : '' }}
+                    onClick={() => handleReceived(record._id, record.received && record.received.toLowerCase() === 'yes')} type="primary">
+                    {(record.received && record.received.toLowerCase() === 'yes') ? 'Remove Received' : 'Mark Received'}
+                </Button>
             ),
         },
     ];
@@ -103,6 +129,22 @@ const CashIns = () => {
                 columns={columns}
                 pagination={pagination}
             />
+            <Modal
+                title="Commodity Details"
+                visible={selectedCommodity !== null}
+                onCancel={() => setSelectedCommodity(null)}
+                footer={null}
+                width={800}
+            >
+                {selectedCommodity && (
+                    <Table
+                        dataSource={[selectedCommodity]}
+                        columns={commodityColumns}
+                        pagination={false}
+                        rowKey="commodityId"
+                    />
+                )}
+            </Modal>
         </div>
     );
 };
