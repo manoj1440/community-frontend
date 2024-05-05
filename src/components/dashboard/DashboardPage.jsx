@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Statistic } from 'antd';
 import './DashboardPage.css';
 import api from '../../utils/api';
-
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -13,22 +12,20 @@ const DashboardPage = () => {
   const [commodityStats, setCommodityStats] = useState([]);
   const [warehouseStats, setWarehouseStats] = useState([]);
 
-  const fetchDashboard = async () => {
-    try {
-      const response = await api.request('get', '/api/dashboard');
-      setDashboardData(response.data);
-      setCommodityStats(response.data.stockInCommodityStats);
-      setWarehouseStats(response.data.stockInWarehouseWiseStats);
-    } catch (error) {
-      console.error('Error fetching dashboardData:', error);
-    }
-  };
-
   useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const response = await api.request('get', '/api/dashboard');
+        setDashboardData(response.data);
+        setCommodityStats(response.data.stockInCommodityStats);
+        setWarehouseStats(response.data.stockInWarehouseWiseStats);
+      } catch (error) {
+        console.error('Error fetching dashboardData:', error);
+      }
+    };
+
     fetchDashboard();
   }, []);
-
-
 
   const commodityData = {
     labels: commodityStats.map(stat => stat._id),
@@ -94,21 +91,34 @@ const DashboardPage = () => {
         </Row>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', textAlign: 'center' }}>
-
-        <div style={{ width: '350px' }}>
+      <div className="charts-container">
+        <div className="chart">
           <h2>StockIn Commodity Stats (In Kgs)</h2>
-          <Doughnut data={commodityData} />
+          <DoughnutChart data={commodityData} />
         </div>
-
-        <div style={{ width: '350px' }}>
-          <h2>StockIn Warehouse-Wise Stats  (In Kgs)</h2>
-          <Doughnut data={warehouseData} />
+        <div className="chart">
+          <h2>StockIn Warehouse-Wise Stats (In Kgs)</h2>
+          <DoughnutChart data={warehouseData} />
         </div>
-
       </div>
     </div>
   );
+};
+
+const DoughnutChart = ({ data }) => {
+
+  const options = {
+    maintainAspectRatio: false,
+    responsive: false,
+    plugins: {
+      legend: {
+        position: 'right',
+      },
+    },
+  };
+
+  return <Doughnut data={data}
+    options={options} />;
 };
 
 export default DashboardPage;

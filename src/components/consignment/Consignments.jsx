@@ -134,7 +134,7 @@ const Consignments = () => {
             key: 'actions',
             render: (_, record) => (
                 <Space size="middle">
-                    <Button onClick={() => handleDeleteConsignment(record._id)} type="danger">
+                    <Button disabled={record.transferred.toLowerCase() === 'yes'} onClick={() => handleDeleteConsignment(record._id)} type="danger">
                         Delete
                     </Button>
                 </Space>

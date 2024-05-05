@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Table, Tag } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
+import { readableDate } from '../../utils/config';
 
 const CashIns = () => {
     const [consignments, setConsignments] = useState([]);
@@ -104,6 +105,12 @@ const CashIns = () => {
             dataIndex: 'received',
             key: 'received',
             render: (received) => (<span style={{ color: (received && received.toLowerCase() === 'yes') ? 'green' : 'red' }}>{received}</span>)
+        },
+        {
+            title: 'Received At',
+            dataIndex: 'receivedAt',
+            key: 'receivedAt',
+            render: (receivedAt) => receivedAt ? readableDate(receivedAt) : 'NA'
         },
         {
             title: 'Actions',
