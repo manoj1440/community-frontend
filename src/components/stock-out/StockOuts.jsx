@@ -58,6 +58,11 @@ const StockOuts = () => {
             key: 'totalQuantity',
         },
         {
+            title: 'Rate Per Commodity',
+            dataIndex: 'rate',
+            key: 'rate',
+        },
+        {
             title: 'Amount',
             dataIndex: 'amount',
             key: 'amount',
