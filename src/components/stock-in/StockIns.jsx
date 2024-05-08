@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Table } from 'antd';
+import { Modal, Table, Select, Button } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
+
+const { Option } = Select;
 
 const StockIns = () => {
     const [stockIns, setStockIns] = useState([]);
@@ -9,10 +11,12 @@ const StockIns = () => {
         current: 1,
         pageSize: 10,
     });
-    // const [selectedStockIn, setSelectedStockIn] = useState(null);
+    const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+    const [warehouses, setWarehouses] = useState([]);
 
     useEffect(() => {
         fetchStockIns(pagination.current, pagination.pageSize);
+        fetchWarehouses();
     }, []);
 
     const fetchStockIns = async (page = pagination.current, pageSize = pagination.pageSize) => {
@@ -30,23 +34,19 @@ const StockIns = () => {
         }
     };
 
-    // const bagColumns = [
-    //     {
-    //         title: 'No. of Bags',
-    //         dataIndex: 'noOfBags',
-    //         key: 'noOfBags',
-    //     },
-    //     {
-    //         title: 'Weight',
-    //         dataIndex: 'weight',
-    //         key: 'weight',
-    //     },
-    //     {
-    //         title: 'Quantity',
-    //         dataIndex: 'quantity',
-    //         key: 'quantity',
-    //     },
-    // ];
+    const fetchWarehouses = async () => {
+        try {
+            const response = await api.request('get', '/api/warehouse');
+            const { data } = response;
+            setWarehouses(data);
+        } catch (error) {
+            console.error('Error fetching warehouses:', error);
+        }
+    };
+
+    const clearFilters = () => {
+        setSelectedWarehouse(null);
+    };
 
     const columns = [
         {
@@ -64,47 +64,39 @@ const StockIns = () => {
             dataIndex: 'totalQuantity',
             key: 'totalQuantity',
         },
-        // {
-        //     title: 'Amount',
-        //     dataIndex: 'amount',
-        //     key: 'amount',
-        // },
-        // {
-        //     title: 'Bags',
-        //     dataIndex: 'bags',
-        //     key: 'bags',
-        //     render: (bags, record) => (
-        //         <a onClick={() => setSelectedStockIn(record)}>View Bags</a>
-        //     ),
-        // },
     ];
 
     return (
         <div>
+            <div style={{ marginBottom: 16 }}>
+                <Select
+                    placeholder="Select Warehouse"
+                    style={{ width: 200, marginRight: 8 }}
+                    onChange={(value) => setSelectedWarehouse(value)}
+                    value={selectedWarehouse}
+                >
+                    {warehouses.map(warehouse => (
+                        <Option key={warehouse._id} value={warehouse._id}>{warehouse.name}</Option>
+                    ))}
+                </Select>
+                {selectedWarehouse && (
+                    <Button
+                        type="primary"
+                        onClick={clearFilters}
+                        style={{ marginLeft: 8 }}
+                    >
+                        Clear Filter
+                    </Button>
+                )}
+            </div>
             <CustomTable
                 downloadButtonText="Export"
                 downloadFileName="StockIns"
-                data={stockIns}
+                data={stockIns.filter((stockIn) => !selectedWarehouse || stockIn.warehouseId._id === selectedWarehouse)}
                 isFilter={false}
                 columns={columns}
                 pagination={pagination}
             />
-            {/* <Modal
-                title="Bag Details"
-                open={selectedStockIn !== null}
-                onCancel={() => setSelectedStockIn(null)}
-                footer={null}
-                width={800}
-            >
-                {selectedStockIn && (
-                    <Table
-                        dataSource={selectedStockIn.bags}
-                        columns={bagColumns}
-                        pagination={false}
-                        rowKey="noOfBags"
-                    />
-                )}
-            </Modal> */}
         </div>
     );
 };
