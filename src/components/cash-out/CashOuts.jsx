@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Table, Tag } from 'antd';
+import { useState, useEffect } from 'react';
+import { Modal, Button, Table, Tag, Select } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 import { readableDate } from '../../utils/config';
+import { CloseCircleOutlined } from '@ant-design/icons';
+
+const { Option } = Select;
 
 const CashOuts = () => {
     const [consignments, setConsignments] = useState([]);
@@ -11,10 +14,36 @@ const CashOuts = () => {
         pageSize: 10,
     });
     const [selectedCommodity, setSelectedCommodity] = useState(null);
+    const [selectedFarmer, setSelectedFarmer] = useState(null);
+    const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+    const [farmers, setFarmers] = useState([]);
+    const [warehouses, setWarehouses] = useState([]);
 
     useEffect(() => {
+        fetchFarmers();
+        fetchWarehouses();
         fetchConsignments(pagination.current, pagination.pageSize);
     }, []);
+
+    const fetchFarmers = async () => {
+        try {
+            const response = await api.request('get', '/api/farmer');
+            const { data } = response;
+            setFarmers(data);
+        } catch (error) {
+            console.error('Error fetching farmers:', error);
+        }
+    };
+
+    const fetchWarehouses = async () => {
+        try {
+            const response = await api.request('get', '/api/warehouse');
+            const { data } = response;
+            setWarehouses(data);
+        } catch (error) {
+            console.error('Error fetching warehouses:', error);
+        }
+    };
 
     const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
@@ -43,7 +72,7 @@ const CashOuts = () => {
             content: `This will mark this cash as ${isRemoved ? 'not' : ''} Transferred ?`,
             onOk: async () => {
                 try {
-                    const response = await api.request('put', `/api/consignment/${consignmentId}`, { transferred: isRemoved ? 'No' : 'Yes' });
+                    await api.request('put', `/api/consignment/${consignmentId}`, { transferred: isRemoved ? 'No' : 'Yes' });
                     fetchConsignments();
                 } catch (error) {
                     console.error('Error updating cash out:', error);
@@ -51,6 +80,11 @@ const CashOuts = () => {
             },
         });
     };
+
+    const clearFilters = () => {
+        setSelectedFarmer(null);
+        setSelectedWarehouse(null);
+    }
 
     const commodityColumns = [
         {
@@ -128,10 +162,46 @@ const CashOuts = () => {
 
     return (
         <div>
+            <div style={{ marginBottom: 16 }}>
+                <Select
+                    placeholder="Select Farmer"
+                    style={{ width: 200, marginRight: 8 }}
+                    onChange={(value) => setSelectedFarmer(value)}
+                    value={selectedFarmer}
+                >
+                    {farmers.map(farmer => (
+                        <Option key={farmer._id} value={farmer._id}>{farmer.name}</Option>
+                    ))}
+                </Select>
+
+                <Select
+                    placeholder="Select Warehouse"
+                    style={{ width: 200 }}
+                    onChange={(value) => setSelectedWarehouse(value)}
+                    value={selectedWarehouse}
+                >
+                    {warehouses.map(warehouse => (
+                        <Option key={warehouse._id} value={warehouse._id}>{warehouse.name}</Option>
+                    ))}
+                </Select>
+
+                {selectedFarmer || selectedWarehouse ? (
+                    <Button
+                        type="primary"
+                        onClick={clearFilters}
+                        style={{ marginLeft: 8 }}
+                        icon={<CloseCircleOutlined/>}
+                    >
+                        Clear Filter
+                    </Button>
+                ) : null}
+            </div>
             <CustomTable
                 downloadButtonText="Export"
                 downloadFileName="Consignments"
-                data={consignments}
+                data={consignments.filter(consignment => {
+                    return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer) && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse));
+                })}
                 isFilter={false}
                 columns={columns}
                 pagination={pagination}
