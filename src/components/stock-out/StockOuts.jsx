@@ -3,6 +3,7 @@ import { Modal, Space, Button, Table, Tag, Select } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 import { CloseCircleOutlined } from '@ant-design/icons';
+import EditStockOut from './EditStockOut';
 
 const { Option } = Select;
 
@@ -12,11 +13,13 @@ const StockOuts = () => {
         current: 1,
         pageSize: 10,
     });
-    const [selectedCommodity, setSelectedCommodity] = useState(null);
+    const [selectedCommodityBags, setSelectedCommodityBags] = useState(null);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [customers, setCustomers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingConsignment, setEditingConsignment] = useState(null);
 
     useEffect(() => {
         fetchCustomers();
@@ -43,6 +46,7 @@ const StockOuts = () => {
             console.error('Error fetching warehouses:', error);
         }
     };
+
 
     const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
@@ -80,29 +84,6 @@ const StockOuts = () => {
         setSelectedWarehouse(null);
     }
 
-    const commodityColumns = [
-        {
-            title: 'Commodity',
-            dataIndex: ['commodityId', 'name'],
-            key: 'commodityId',
-        },
-        {
-            title: 'Total Quantity',
-            dataIndex: 'totalQuantity',
-            key: 'totalQuantity',
-        },
-        {
-            title: 'Rate Per Commodity',
-            dataIndex: 'rate',
-            key: 'rate',
-        },
-        {
-            title: 'Amount',
-            dataIndex: 'amount',
-            key: 'amount',
-        },
-    ];
-
     const bagColumns = [
         {
             title: 'No. of Bags',
@@ -136,25 +117,40 @@ const StockOuts = () => {
             title: 'Commodities',
             dataIndex: 'commodity',
             key: 'commodity',
-            render: (commodities) => (
-                <div>
-                    {commodities.map((commodity, index) => (
-                        <Tag
-                            key={index}
-                            color="geekblue"
-                            style={{ marginBottom: 4, cursor: 'pointer' }}
-                            onClick={() => setSelectedCommodity(commodity)}
-                        >
-                            {commodity.commodityId.name}
-                        </Tag>
-                    ))}
-                </div>
+            render: (_, record) => (
+                <Tag
+                    color="geekblue"
+                    style={{ marginBottom: 4, cursor: 'pointer' }}
+                    onClick={() => setSelectedCommodityBags(record.bags)}
+                >
+                    {record.commodityId.name}
+                </Tag>
             ),
         },
         {
-            title: 'Total Amount',
-            dataIndex: 'totalAmount',
-            key: 'totalAmount',
+            title: 'Total Quantity',
+            dataIndex: 'totalQuantity',
+            key: 'totalQuantity',
+        },
+        {
+            title: 'Rate Per Commodity',
+            dataIndex: 'rate',
+            key: 'rate',
+        },
+        {
+            title: 'Total Expected Amount',
+            dataIndex: 'amount',
+            key: 'amount',
+        },
+        {
+            title: 'Total Received Quantity',
+            dataIndex: 'totalReceivedQuantity',
+            key: 'totalReceivedQuantity',
+        },
+        {
+            title: 'Total Received Amount',
+            dataIndex: 'receivedAmount',
+            key: 'receivedAmount',
         },
         {
             title: 'Actions',
@@ -162,6 +158,7 @@ const StockOuts = () => {
             key: 'actions',
             render: (_, record) => (
                 <Space size="middle">
+                    <Button onClick={() => handleEditConsignment(record)}>Edit</Button>
                     <Button disabled={record.received.toLowerCase() === 'yes'} onClick={() => handleDeleteConsignment(record._id)} type="danger">
                         Delete
                     </Button>
@@ -169,6 +166,28 @@ const StockOuts = () => {
             ),
         },
     ];
+
+    const handleEditConsignment = (consignment) => {
+        setEditingConsignment(consignment);
+        setShowEditModal(true);
+    };
+
+    const handleEditOk = async (values) => {
+        try {
+            // Update the consignment with the new values
+            await api.request('put', `/api/stock-out/${editingConsignment._id}`, values);
+            setShowEditModal(false);
+            setEditingConsignment(null);
+            fetchConsignments(pagination.current, pagination.pageSize);
+        } catch (error) {
+            console.error('Error updating stock-out:', error);
+        }
+    };
+
+    const handleEditCancel = () => {
+        setShowEditModal(false);
+        setEditingConsignment(null);
+    };
 
     return (
         <div>
@@ -195,12 +214,12 @@ const StockOuts = () => {
                     ))}
                 </Select>
 
-                {selectedCustomer  || selectedWarehouse ? (
+                {selectedCustomer || selectedWarehouse ? (
                     <Button
                         type="primary"
                         onClick={clearFilters}
                         style={{ marginLeft: 8 }}
-                        icon={<CloseCircleOutlined/>}
+                        icon={<CloseCircleOutlined />}
                     >
                         Clear Filter
                     </Button>
@@ -209,41 +228,35 @@ const StockOuts = () => {
             <CustomTable
                 downloadButtonText="Export"
                 downloadFileName="Consignments"
-                data={consignments.filter(consignment => {
+                data={consignments?.filter(consignment => {
                     return ((!selectedCustomer || consignment.customerId._id === selectedCustomer) && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse));
-                })}
+                }) || []}
                 isFilter={false}
                 columns={columns}
                 pagination={pagination}
             />
             <Modal
                 title="Commodity Details"
-                visible={selectedCommodity !== null}
-                onCancel={() => setSelectedCommodity(null)}
+                visible={selectedCommodityBags !== null}
+                onCancel={() => setSelectedCommodityBags(null)}
                 footer={null}
                 width={800}
             >
-                {selectedCommodity && (
-                    <div>
-                        <Table
-                            dataSource={[selectedCommodity]}
-                            columns={commodityColumns}
-                            pagination={false}
-                            rowKey="commodityId"
-                            expandable={{
-                                expandedRowRender: (record) => (
-                                    <Table
-                                        dataSource={record.bags}
-                                        columns={bagColumns}
-                                        pagination={false}
-                                        rowKey="noOfBags"
-                                    />
-                                ),
-                            }}
-                        />
-                    </div>
+                {selectedCommodityBags && (
+                    <Table
+                        dataSource={selectedCommodityBags}
+                        columns={bagColumns}
+                        pagination={false}
+                        rowKey="noOfBags"
+                    />
                 )}
             </Modal>
+            <EditStockOut
+                visible={showEditModal}
+                onCancel={handleEditCancel}
+                onOk={handleEditOk}
+                initialValues={editingConsignment}
+            />
         </div>
     );
 };
