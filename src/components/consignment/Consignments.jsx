@@ -136,8 +136,10 @@ const Consignments = () => {
         },
         {
             title: 'Transporter',
-            dataIndex: ['transporterId', 'transportAgency'],
+            dataIndex: 'transporterId',
             key: 'transporterId',
+            render: (transporterId) => transporterId ? `${transporterId.driverName}-${transporterId.transportAgency}` : 'NA'
+
         },
         {
             title: 'Warehouse',
