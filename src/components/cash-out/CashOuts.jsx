@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Table, Tag, Select } from 'antd';
+import { Modal, Button, Table, Tag, Select, message } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 import { readableDate } from '../../utils/config';
@@ -72,7 +72,11 @@ const CashOuts = () => {
             content: `This will mark this cash as ${isRemoved ? 'not' : ''} Transferred ?`,
             onOk: async () => {
                 try {
-                    await api.request('put', `/api/consignment/${consignmentId}`, { transferred: isRemoved ? 'No' : 'Yes' });
+                    const response = await api.request('put', `/api/consignment/${consignmentId}`, { transferred: isRemoved ? 'No' : 'Yes' });
+                    console.log(response)
+                    if(response.status === false){
+                        message.error(response.message);
+                    }
                     fetchConsignments();
                 } catch (error) {
                     console.error('Error updating cash out:', error);
@@ -164,9 +168,13 @@ const CashOuts = () => {
         <div>
             <div style={{ marginBottom: 16 }}>
                 <Select
+                    showSearch
                     placeholder="Select Farmer"
                     style={{ width: 200, marginRight: 8 }}
                     onChange={(value) => setSelectedFarmer(value)}
+                    filterOption={(inputValue, option) =>
+                        option.children.toLowerCase().indexOf(inputValue.toLowerCase()) >= 0
+                    }
                     value={selectedFarmer}
                 >
                     {farmers.map(farmer => (
@@ -190,7 +198,7 @@ const CashOuts = () => {
                         type="primary"
                         onClick={clearFilters}
                         style={{ marginLeft: 8 }}
-                        icon={<CloseCircleOutlined/>}
+                        icon={<CloseCircleOutlined />}
                     >
                         Clear Filter
                     </Button>

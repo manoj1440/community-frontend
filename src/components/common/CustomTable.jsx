@@ -13,6 +13,7 @@ const CustomTable = ({
     fetchData,
     totalRecords
 }) => {
+    console.log("DATA", data)
     const [columnFilters, setColumnFilters] = useState({});
     const [currentPagination, setCurrentPagination] = useState(pagination || {});
 

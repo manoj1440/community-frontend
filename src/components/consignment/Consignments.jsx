@@ -136,7 +136,7 @@ const Consignments = () => {
         },
         {
             title: 'Transporter',
-            dataIndex: ['transporterId', 'transportAgency'],
+            dataIndex: ['transporterId', 'driverContactNo'],
             key: 'transporterId',
         },
         {
@@ -186,17 +186,22 @@ const Consignments = () => {
         <div>
             <div style={{ marginBottom: 16 }}>
                 <Select
+                    showSearch
                     placeholder="Select Farmer"
                     style={{ width: 200, marginRight: 8 }}
                     onChange={(value) => {
                         setSelectedFarmer(value);
                     }}
+                    filterOption={(inputValue, option) =>
+                        option.children.toLowerCase().indexOf(inputValue.toLowerCase()) >= 0
+                    }
                     value={selectedFarmer}
                 >
                     {farmers.map(farmer => (
                         <Option key={farmer._id} value={farmer._id}>{farmer.name}</Option>
                     ))}
                 </Select>
+
 
                 <Select
                     placeholder="Select Warehouse"
@@ -220,7 +225,7 @@ const Consignments = () => {
                         type="primary"
                         onClick={clearFilters}
                         style={{ marginLeft: 8 }}
-                        icon={<CloseCircleOutlined/>}
+                        icon={<CloseCircleOutlined />}
                     >
                         Clear Filter
                     </Button>
