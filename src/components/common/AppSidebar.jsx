@@ -42,14 +42,19 @@ const AppSidebar = ({ collapsed, setCollapsed }) => {
             label: 'Stock In',
         },
         {
+            key: '/depot-cash',
+            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            label: 'Depot Cash',
+        },
+        {
             key: '/cash-in',
             icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
-            label: 'Cash In',
+            label: 'Depot Cash In',
         },
         {
             key: '/cash-out',
             icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
-            label: 'Cash Out',
+            label: 'Paid to Farmer',
         },
         {
             key: '/consignment',

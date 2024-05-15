@@ -193,9 +193,13 @@ const StockOuts = () => {
         <div>
             <div style={{ marginBottom: 16 }}>
                 <Select
+                    showSearch
                     placeholder="Select Customer"
                     style={{ width: 200, marginRight: 8 }}
                     onChange={(value) => setSelectedCustomer(value)}
+                    filterOption={(inputValue, option) =>
+                        option.children.toLowerCase().indexOf(inputValue.toLowerCase()) >= 0
+                    }
                     value={selectedCustomer}
                 >
                     {customers.map(customer => (

@@ -149,15 +149,20 @@ const CashIns = () => {
         <div>
             <div style={{ marginBottom: 16 }}>
                 <Select
+                    showSearch
                     placeholder="Select Customer"
                     style={{ width: 200, marginRight: 8 }}
                     onChange={(value) => setSelectedCustomer(value)}
+                    filterOption={(inputValue, option) =>
+                        option.children.toLowerCase().indexOf(inputValue.toLowerCase()) >= 0
+                    }
                     value={selectedCustomer}
                 >
                     {customers.map(customer => (
                         <Option key={customer._id} value={customer._id}>{customer.name}</Option>
                     ))}
                 </Select>
+
 
                 <Select
                     placeholder="Select Warehouse"

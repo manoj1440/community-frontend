@@ -24,6 +24,7 @@ const Transporters = () => {
         try {
             const response = await api.request('get', '/api/transporter');
             const { data } = response;
+            console.log(data);
             setTransporters(data);
             setPagination({
                 current: page,
@@ -73,9 +74,9 @@ const Transporters = () => {
             key: 'vehicleNumber',
         },
         {
-            title: 'Transport Agency',
-            dataIndex: 'transportAgency',
-            key: 'transportAgency',
+            title: 'Driver Contact No',
+            dataIndex: 'driverContactNo',
+            key: 'driverContactNo',
         },
         {
             title: 'Actions',
