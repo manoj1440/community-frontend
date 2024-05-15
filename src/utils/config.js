@@ -2,11 +2,16 @@ import dayjs from "dayjs";
 
 export const permissionmap = {
     ADMIN: [],
-    STOCK_IN: ['/stock-in', '/consignment', '/farmers', '/commodity', '/transporters'],
-    STOCK_OUT: ['/stock-out', '/customers', '/commodity'],
-    STOCK_IN_OUT: ['/stock-in', '/consignment', '/farmers', '/commodity', '/transporters', '/stock-out', '/customers'],
-    CASH_IN: ['/cash-in'],
-    CASH_OUT: ['/cash-out']
+    STOCK_IN: [],
+    STOCK_OUT: [],
+    STOCK_IN_OUT: [],
+    CASH_IN: [],
+    CASH_OUT: [],
+    // STOCK_IN: ['/stock-in', '/consignment', '/farmers', '/commodity', '/transporters'],
+    // STOCK_OUT: ['/stock-out', '/customers', '/commodity'],
+    // STOCK_IN_OUT: ['/stock-in', '/consignment', '/farmers', '/commodity', '/transporters', '/stock-out', '/customers'],
+    // CASH_IN: ['/cash-in'],
+    // CASH_OUT: ['/cash-out']
 }
 
 export const defaultRoutemap = {

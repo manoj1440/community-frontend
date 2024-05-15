@@ -1,128 +1,77 @@
-import React, { useEffect } from 'react';
-import { Form, Input, Button, Modal, Select, InputNumber } from 'antd';
-import api from '../../utils/api';
+import React, { useState, useEffect } from 'react';
+import { Modal, Form, Input, InputNumber, Button } from 'antd';
 
-const EditStockOut = ({
-    warehouses,
-    transporters,
-    commodities,
-    farmers,
-    consignment, onCancel, editModalVisible, fetchConsignments }) => {
+const EditStockOutModal = ({ visible, onCancel, onOk, initialValues }) => {
     const [form] = Form.useForm();
+    const [confirmLoading, setConfirmLoading] = useState(false);
 
-    useEffect(() => {
-        form.resetFields();
-
-        const editConsignmentData = {
-            ...consignment,
-            warehouseId: consignment.warehouseId?._id || consignment.warehouseId,
-            commodityId: consignment.commodityId?._id || consignment.commodityId,
-            customerId: consignment.customerId?._id || consignment.customerId,
-        };
-
-        form.setFieldsValue(editConsignmentData);
-    }, [consignment, form]);
-
-    const onFinish = async (values) => {
+    const handleOk = async () => {
+        setConfirmLoading(true);
         try {
-            const response = await api.request('put', `/api/stock-out/${consignment._id}`, values);
-            console.log('stock-out edited:', response);
-            onCancel();
-            fetchConsignments();
-        } catch (error) {
-            console.error('Error editing stock-out:', error);
+            const values = await form.validateFields();
+            onOk({ ...values });
+        } catch (err) {
+            console.error('Form validation error:', err);
+        } finally {
+            setConfirmLoading(false);
         }
     };
 
-    const fetchPrice = async (warehouseId, commodityId) => {
-        try {
-            const response = await api.request('get', `/api/price/${warehouseId}/${commodityId}`);
-            const { data } = response;
-            const rate = data?.historicalPrices[data.historicalPrices.length - 1]?.price
-
-            form.setFieldsValue({
-                rate: rate
-            });
-
-            if (form.getFieldValue('quantity')) {
-                form.setFieldsValue({
-                    amount: rate * form.getFieldValue('quantity')
-                });
-            }
-
-        } catch (error) {
-            console.error('Error fetching Price:', error);
-        }
+    const handleCancel = () => {
+        form.resetFields();
+        onCancel();
     };
 
     return (
         <Modal
-            title="Edit Consignment"
-            visible={editModalVisible}
-            onCancel={onCancel}
-            footer={null}
+            visible={visible}
+            title="Edit Stock Out"
+            onOk={handleOk}
+            onCancel={handleCancel}
+            confirmLoading={confirmLoading}
         >
-            <Form form={form} onFinish={onFinish} layout="vertical">
-                <Form.Item label="Farmer" name="farmerId" rules={[{ required: true, message: 'Please enter a farmer' }]}>
-                    <Select>
-                        {farmers?.map((item) => (
-                            <Select.Option key={item._id} value={item._id}>
-                                {item.name}
-                            </Select.Option>
-                        ))}
-                    </Select>
+            <Form form={form} initialValues={initialValues} layout="vertical">
+                <Form.Item
+                    name="totalQuantity"
+                    label="Total Quantity"
+                >
+                    <InputNumber min={0} disabled />
                 </Form.Item>
-                <Form.Item label="Transporter" name="transporterId" rules={[{ required: true, message: 'Please enter a transporter' }]}>
-                    <Select>
-                        {transporters?.map((item) => (
-                            <Select.Option key={item._id} value={item._id}>
-                                {item.transportAgency}
-                            </Select.Option>
-                        ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item label="Warehouse" name="warehouseId" rules={[{ required: true, message: 'Please enter a warehouse' }]}>
-                    <Select onChange={(value) => fetchPrice(value, form.getFieldValue('commodityId'))}>
-                        {warehouses?.map((item) => (
-                            <Select.Option key={item._id} value={item._id}>
-                                {item.name}
-                            </Select.Option>
-                        ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item label="Commodity" name="commodityId" rules={[{ required: true, message: 'Please enter a commodity' }]}>
-                    <Select onChange={(value) => fetchPrice(form.getFieldValue('warehouseId'), value)}>
-                        {commodities?.map((item) => (
-                            <Select.Option key={item._id} value={item._id}>
-                                {item.name}
-                            </Select.Option>
-                        ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item label="Quantity" name="quantity" rules={[{ required: true, message: 'Please enter a quantity' }]}>
-                    <InputNumber min={1} onChange={() => {
+
+                <Form.Item
+                    name="rate"
+                    label="Rate Per Commodity"
+                    rules={[{ required: true, message: 'Please enter the rate per commodity' }]}
+                >
+                    <InputNumber min={0} step={0.01} onChange={() => {
                         form.setFieldsValue({
-                            amount: form.getFieldValue('rate') * form.getFieldValue('quantity')
+                            amount: form.getFieldValue('rate') * form.getFieldValue('totalQuantity'),
+                            receivedAmount: form.getFieldValue('rate') * form.getFieldValue('totalReceivedQuantity'),
                         });
                     }} />
                 </Form.Item>
-                <Form.Item label="Rate" name="rate" rules={[{ required: true, message: 'Please enter a rate' }]}>
-                    <Input disabled />
+
+                <Form.Item name="amount" label="Total Expected Amount">
+                    <InputNumber disabled />
                 </Form.Item>
-                <Form.Item label="Amount" name="amount" rules={[{ required: true, message: 'Please enter an amount' }]}>
-                    <Input disabled />
+
+                <Form.Item
+                    name="totalReceivedQuantity"
+                    label="Total Received Quantity"
+                >
+                    <InputNumber min={0} max={initialValues?.totalQuantity} onChange={() => {
+                        form.setFieldsValue({
+                            receivedAmount: form.getFieldValue('rate') * form.getFieldValue('totalReceivedQuantity')
+                        });
+                    }} />
                 </Form.Item>
-                <Form.Item>
-                    <Button type="primary" htmlType="submit">
-                        Save
-                    </Button>
-                    <Button onClick={onCancel} style={{ marginLeft: 8 }}>
-                        Cancel
-                    </Button>
+
+                <Form.Item name="receivedAmount" label="Total Received Amount">
+                    <InputNumber disabled />
                 </Form.Item>
             </Form>
         </Modal>
     );
 };
 
-export default EditStockOut;
+export default EditStockOutModal;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Layout, theme } from 'antd';
+import { Layout, message, theme } from 'antd';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import AppSidebar from './AppSidebar';
 import { Footer } from 'antd/es/layout/layout';
@@ -29,9 +29,15 @@ const AppLayout = () => {
             navigate(defaultRoutemap[userData.user.role]);
         }
 
-        if (userData && userData.user && userData.user.role !== 'ADMIN' && !isLoginPage && !permissionmap[userData.user.role].includes(location.pathname)) {
-            navigate(defaultRoutemap[userData.user.role]);
+        if (userData && userData.user && userData.user.role !== 'ADMIN') {
+            message.error(`You don't have access`);
+            navigate('/login');
+            localStorage.clear();
         }
+
+        // if (userData && userData.user && userData.user.role !== 'ADMIN' && !isLoginPage && !permissionmap[userData.user.role].includes(location.pathname)) {
+        //     navigate(defaultRoutemap[userData.user.role]);
+        // }
 
         if (!userData && !isLoginPage) {
             navigate('/login');
