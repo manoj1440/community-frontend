@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Space, Button, Table, Tag, Select } from 'antd';
+import { Modal, Space, Button, Table, Tag, Select, DatePicker } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 import { CloseCircleOutlined } from '@ant-design/icons';
@@ -217,6 +217,12 @@ const StockOuts = () => {
                         <Option key={warehouse._id} value={warehouse._id}>{warehouse.name}</Option>
                     ))}
                 </Select>
+
+                <DatePicker.RangePicker
+                    style={{ marginLeft: 8 }}
+                    // onChange={(dates) => setSelectedDateRange(dates)}
+                    // value={selectedDateRange}
+                />
 
                 {selectedCustomer || selectedWarehouse ? (
                     <Button

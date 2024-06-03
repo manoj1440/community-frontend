@@ -4,6 +4,7 @@ import App from './App.jsx'
 import './index.css'
 import { ConfigProvider } from 'antd';
 
+
 const defaultData = {
   borderRadius: 6,
   colorPrimary: '#c20b48',

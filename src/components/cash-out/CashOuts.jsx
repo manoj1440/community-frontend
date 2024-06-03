@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Table, Tag, Select, message } from 'antd';
+import { Modal, Button, Table, Tag, Select, message, DatePicker } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 import { readableDate } from '../../utils/config';
@@ -16,6 +16,7 @@ const CashOuts = () => {
     const [selectedCommodity, setSelectedCommodity] = useState(null);
     const [selectedFarmer, setSelectedFarmer] = useState(null);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+    const [selectedDateRange, setSelectedDateRange] = useState(null)
     const [farmers, setFarmers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
 
@@ -73,8 +74,8 @@ const CashOuts = () => {
             onOk: async () => {
                 try {
                     const response = await api.request('put', `/api/consignment/${consignmentId}`, { transferred: isRemoved ? 'No' : 'Yes' });
-                    console.log(response)
-                    if(response.status === false){
+                 
+                    if (response.status === false) {
                         message.error(response.message);
                     }
                     fetchConsignments();
@@ -193,6 +194,12 @@ const CashOuts = () => {
                     ))}
                 </Select>
 
+                <DatePicker.RangePicker
+                    style={{ marginLeft: 8 }}
+                    onChange={(dates) => setSelectedDateRange(dates)}
+                    value={selectedDateRange}
+                />
+
                 {selectedFarmer || selectedWarehouse ? (
                     <Button
                         type="primary"
@@ -208,7 +215,9 @@ const CashOuts = () => {
                 downloadButtonText="Export"
                 downloadFileName="Consignments"
                 data={consignments.filter(consignment => {
-                    return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer) && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse));
+                    return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer) && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse)
+                        // (!selectedDateRange || )
+                    );
                 })}
                 isFilter={false}
                 columns={columns}

@@ -88,8 +88,123 @@
   margin-top: 20px; /* Adjust as needed */
 }
 
+.line-chart-card {
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.14);
+  transition: box-shadow 0.3s ease;
+  padding-right: 38px;
+  padding-left: 38px;
+  padding-bottom: 38px;
+  border-radius: 3px;
+  background-color: #fff;
+  margin: 5px 0;
+}
+
+.line-chart-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.line-chart-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 30px; /* Adjust as needed */
+}
+
 .chart h2 {
   font-size: 18px;
   margin-bottom: 10px;
   color: #333; /* Optional: Adjust text color */
 }
+
+.line-chart h2 {
+  font-size: 18px;
+  margin-bottom: 25px;
+  color: #333; /* Optional: Adjust text color */
+  text-align: center;
+}
+
+.dashboard-page {
+  position: relative;
+  padding: 20px;
+}
+
+.top-right-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.custom-range-picker input {
+  font-size: 14px;
+  padding: 6px;
+  height: 38px;
+  border-radius: 4px;
+}
+
+.custom-range-picker .ant-picker-input > input::placeholder {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+}
+
+.custom-range-picker .ant-picker-input {
+  display: flex;
+  justify-content: space-between;
+}
+
+
+.custom-dropdown-button {
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.small-arrow {
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.custom-select {
+  border : none;
+}
+
+/* .ant-picker,
+.ant-btn {
+  height: 40px;
+  line-height: 40px;
+}
+
+.ant-picker .ant-picker-input > input {
+  border: none;
+  box-shadow: none;
+}
+
+.ant-btn:hover,
+.ant-btn:focus,
+.ant-btn:active {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+} */
+
+
+
+.dashboard-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.ant-select-focused .ant-select-selector,
+.ant-select-selector:focus,
+.ant-select-selector:active,
+.ant-select-open .ant-select-selector {
+  border-color: #d9d9d9 !important;
+  box-shadow: none !important;
+}
+
+.custom-range-picker .ant-picker-input > input {
+  color: black !important;
+}
+
+
