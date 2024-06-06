@@ -26,8 +26,6 @@ const DashboardPage = () => {
   const [stockOuts, setStockOuts] = useState([]);
   const [depotCash, setDepotCash] = useState([]);
 
-  console.log('LOG', warehouses)
-
   let userData = { user: { name: "", email: "", contact: "", location: "", role: "" } };
   try {
     userData = JSON.parse(localStorage.getItem('user')) || { user: { name: "", email: "", contact: "", location: "", role: "" } };
@@ -105,31 +103,54 @@ const DashboardPage = () => {
   };
 
 
+  const normalizeDate = (date) => {
+    const normalized = new Date(date);
+    normalized.setHours(0, 0, 0, 0);
+    return normalized;
+  };
+
   const filteredConsignments = consignments.filter((consignment) => {
-    const consignmentDate = new Date(consignment.createdAt);
+    const consignmentDate = normalizeDate(consignment.createdAt);
+    let dateRangeMatch = true;
+    if (dateRange) {
+      const [start, end] = dateRange.map(date => normalizeDate(date));
+      dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
+    }
     return (
       (selectedWarehouses.includes('All Warehouses') || selectedWarehouses.includes(consignment.warehouseId)) &&
       (selectedCommodities.includes('All Commodities') || consignment.commodity.some((commodity) => selectedCommodities.includes(commodity.commodityId))) &&
-      (!dateRange || (consignmentDate >= dateRange[0] && consignmentDate <= dateRange[1]))
-    );
+      (dateRangeMatch));
   });
 
+  const commodityTotals = {};
+  filteredConsignments.forEach((consignment) => {
+    consignment.commodity.forEach((commodityItem) => {
+      const commodityId = commodityItem.commodityId;
+      if (selectedCommodities.includes('All Commodities') || selectedCommodities.includes(commodityId)) {
+        commodityTotals[commodityId] = (commodityTotals[commodityId] || 0) + commodityItem.amount;
+      }
+    });
+  });
+
+  const totalAmounts = Object.values(commodityTotals).reduce((acc, amount) => acc + amount, 0);
+
   const filteredStockIns = stockIns.filter((stockIn) => {
-    const stockInsDate = new Date(stockIn.createdAt);
     return (
       (selectedWarehouses.includes('All Warehouses') || selectedWarehouses.includes(stockIn.warehouseId)) &&
-      (selectedCommodities.includes('All Commodities') || selectedCommodities.includes(stockIn.commodityId)) &&
-      (!dateRange || (stockInsDate >= dateRange[0] && stockInsDate <= dateRange[1]))
-    );
+      (selectedCommodities.includes('All Commodities') || selectedCommodities.includes(stockIn.commodityId)));
   });
 
   const filteredStockOuts = stockOuts.filter((stockOut) => {
-    const stockOutsDate = new Date(stockOut.createdAt);
+    const stockOutsDate = normalizeDate(stockOut.createdAt);
+    let dateRangeMatch = true;
+    if (dateRange) {
+      const [start, end] = dateRange.map(date => normalizeDate(date));
+      dateRangeMatch = stockOutsDate >= start && stockOutsDate <= end;
+    }
     return (
       (selectedWarehouses.includes('All Warehouses') || selectedWarehouses.includes(stockOut.warehouseId)) &&
       (selectedCommodities.includes('All Commodities') || selectedCommodities.includes(stockOut.commodityId)) &&
-      (!dateRange || (stockOutsDate >= dateRange[0] && stockOutsDate <= dateRange[1]))
-    );
+      (dateRangeMatch));
   });
 
   const filteredDepotCash = depotCash.filter((cash) => {
@@ -242,7 +263,7 @@ const DashboardPage = () => {
   const totalBags = filteredConsignments.reduce((acc, consignment) => acc + consignment.commodity.reduce((sum, item) => sum + item.bags.reduce((count, bag) => count + bag.noOfBags, 0), 0), 0);
   const totalDepotCash = filteredDepotCash.reduce((total, item) => total + item.closingAmount, 0);
   const totalCommodities = commodities.length;
-  const roundedTotalAmount = totalAmount.toFixed(2);
+  const roundedTotalAmount = totalAmounts.toFixed(2);
 
   const totalQuantityByDate = filteredConsignments.reduce((acc, consignment) => {
     const date = moment(consignment.createdAt).format('YYYY-MM-DD');
@@ -308,8 +329,8 @@ const DashboardPage = () => {
     consignmentCount: filteredConsignments.length,
     totalStockIns: totalStockInQuantity,
     totalBags: totalBags,
-    totalDepotCash : totalDepotCash,
-    totalAmount : roundedTotalAmount,
+    totalDepotCash: totalDepotCash,
+    totalAmount: roundedTotalAmount,
     name: name,
     role: role
   }

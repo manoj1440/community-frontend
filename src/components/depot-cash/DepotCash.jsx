@@ -13,6 +13,8 @@ const DepotCash = () => {
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
     const [selectedWarehouseTransactions, setSelectedWarehouseTransactions] = useState([]);
     const [isTransactionModalVisible, setIsTransactionModalVisible] = useState(false);
+    const [isEditTransactionModalVisible, setIsEditTransactionModelVisible] = useState(false);
+    const [editTransactionData, setEditTransactionData] = useState(null)
 
     const [pagination, setPagination] = useState({
         current: 1,
@@ -51,6 +53,8 @@ const DepotCash = () => {
         }
     };
 
+    console.log('LOG', depotCashEntries);
+
     const handleAddModalOpen = () => {
         setIsAddModalVisible(true);
     };
@@ -76,10 +80,32 @@ const DepotCash = () => {
         setIsTransactionModalVisible(true);
     };
 
+    const handleEditTransaction = (record) => {
+        setEditTransactionData(record);
+        setIsEditTransactionModelVisible(true);
+    };
+
+    useEffect(() => {
+        if (isEditTransactionModalVisible) {
+            form.setFieldsValue(editTransactionData);
+        }
+    }, [isEditTransactionModalVisible, editTransactionData]);
+
+    const handleEditTransactionSubmit = async (values) => {
+        try {
+            const response = await api.request('put', `/api/depot-cash/${editTransactionData._id}`, values);
+            console.log('LOG', response)
+            // setIsEditTransactionModelVisible(false);
+            // fetchDepotCashEntries();
+        } catch (error) {
+            console.error('Error editing transaction:', error);
+        }
+    };
+
     const columns = [
         {
             title: 'Warehouse',
-            dataIndex: ['warehouseId', 'name'],
+            dataIndex: ['warehouses', 0, 'name'],
             key: 'warehouseId',
         },
         {
@@ -127,6 +153,7 @@ const DepotCash = () => {
                 columns={columns}
                 pagination={pagination}
             />
+
             <Modal
                 title="Add Depot Cash"
                 visible={isAddModalVisible}
@@ -168,6 +195,34 @@ const DepotCash = () => {
             </Modal>
 
             <Modal
+                title="Edit Warehouse Transactions"
+                visible={isEditTransactionModalVisible}
+                onCancel={() => setIsEditTransactionModelVisible(false)}
+                footer={null}
+                width={600}
+            >
+                {editTransactionData && (
+                    <Form form={form} onFinish={handleEditTransactionSubmit} layout="vertical" initialValues={editTransactionData}>
+
+                        <Form.Item
+                            name="amount"
+                            label="Amount"
+                        >
+                            <Input type="number" />
+                        </Form.Item>
+                        <Form.Item>
+                            <Button type="primary" htmlType="submit">
+                                Save
+                            </Button>
+                            <Button onClick={() => setIsEditTransactionModelVisible(false)} style={{ marginLeft: 10 }}>
+                                Cancel
+                            </Button>
+                        </Form.Item>
+                    </Form>
+                )}
+            </Modal>
+
+            <Modal
                 title="Warehouse Transactions"
                 visible={isTransactionModalVisible}
                 onCancel={() => setIsTransactionModalVisible(false)}
@@ -179,20 +234,55 @@ const DepotCash = () => {
                     onChange={(dates) => setSelectedDateRange(dates)}
                     value={selectedDateRange}
                 />
-
                 <Table
-                    dataSource={selectedWarehouseTransactions.filter(transaction => {
-                       const transactionDate = new Date(transaction.date);
-                       return(!selectedDateRange || (transactionDate >= selectedDateRange[0] && transactionDate <= selectedDateRange[1]))
-                    })}
+                    dataSource={selectedWarehouseTransactions
+                        .filter(transaction => {
+                            if (!selectedDateRange) return true;
+                            const transactionDate = moment(transaction.date);
+                            return transactionDate.isBetween(selectedDateRange[0], selectedDateRange[1], null, '[]');
+                        })
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))}
                     columns={[
+                        {
+                            title: 'Entity',
+                            dataIndex: 'entity',
+                            key: 'entity',
+                            render: (entity) => entity ? entity.name : 'NA'
+                        },
                         { title: 'Date', dataIndex: 'date', key: 'date', render: (date) => date ? readableDate(date) : 'NA' },
                         { title: 'Amount', dataIndex: 'amount', key: 'amount' },
                         { title: 'Type', dataIndex: 'type', key: 'type' },
+                        // {
+                        //     title: 'Actions',
+                        //     dataIndex: '_id',
+                        //     key: 'actions',
+                        //     render: (_, record, index) => {
+                        //         const isLastTransaction = index === 0; 
+                        //         if (isLastTransaction) {
+                        //             if (record.entityType === 'User') {
+                        //                 return (
+                        //                     <Button onClick={() => handleEditTransaction(record)} type="primary">
+                        //                         Edit
+                        //                     </Button>
+                        //                 );
+                        //             } else if (record.entityType === 'Farmer' || record.entityType === 'Customer') {
+                        //                 return (
+                        //                     <Button onClick={() => handleRevertTransaction(record)} type="danger">
+                        //                         Revert
+                        //                     </Button>
+                        //                 );
+                        //             }
+                        //         }
+                        //         return null;
+                        //     },
+                        // },
                     ]}
-                    pagination={false}
+                    pagination={true}
                 />
             </Modal>
+
+
+
         </div>
     );
 };

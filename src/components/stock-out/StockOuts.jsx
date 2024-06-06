@@ -16,6 +16,7 @@ const StockOuts = () => {
     const [selectedCommodityBags, setSelectedCommodityBags] = useState(null);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+    const [selectedDateRange, setSelectedDateRange] = useState(null);
     const [customers, setCustomers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -82,6 +83,7 @@ const StockOuts = () => {
     const clearFilters = () => {
         setSelectedCustomer(null);
         setSelectedWarehouse(null);
+        setSelectedDateRange(null);
     }
 
     const bagColumns = [
@@ -174,7 +176,6 @@ const StockOuts = () => {
 
     const handleEditOk = async (values) => {
         try {
-            // Update the consignment with the new values
             await api.request('put', `/api/stock-out/${editingConsignment._id}`, values);
             setShowEditModal(false);
             setEditingConsignment(null);
@@ -187,6 +188,12 @@ const StockOuts = () => {
     const handleEditCancel = () => {
         setShowEditModal(false);
         setEditingConsignment(null);
+    };
+
+    const normalizeDate = (date) => {
+        const normalized = new Date(date);
+        normalized.setHours(0, 0, 0, 0);
+        return normalized;
     };
 
     return (
@@ -220,11 +227,11 @@ const StockOuts = () => {
 
                 <DatePicker.RangePicker
                     style={{ marginLeft: 8 }}
-                    // onChange={(dates) => setSelectedDateRange(dates)}
-                    // value={selectedDateRange}
+                    onChange={(dates) => setSelectedDateRange(dates)}
+                    value={selectedDateRange}
                 />
 
-                {selectedCustomer || selectedWarehouse ? (
+                {selectedCustomer || selectedWarehouse || selectedDateRange ? (
                     <Button
                         type="primary"
                         onClick={clearFilters}
@@ -239,7 +246,16 @@ const StockOuts = () => {
                 downloadButtonText="Export"
                 downloadFileName="Consignments"
                 data={consignments?.filter(consignment => {
-                    return ((!selectedCustomer || consignment.customerId._id === selectedCustomer) && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse));
+                    const consignmentDate = normalizeDate(consignment.createdAt);
+
+                    let dateRangeMatch = true;
+
+                    if (selectedDateRange) {
+                        const [start, end] = selectedDateRange.map(date => normalizeDate(date));
+                        dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
+                    }
+                    return ((!selectedCustomer || consignment.customerId._id === selectedCustomer) && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse) &&
+                        (dateRangeMatch));
                 }) || []}
                 isFilter={false}
                 columns={columns}

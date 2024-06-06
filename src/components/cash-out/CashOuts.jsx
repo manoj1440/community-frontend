@@ -17,6 +17,7 @@ const CashOuts = () => {
     const [selectedFarmer, setSelectedFarmer] = useState(null);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [selectedDateRange, setSelectedDateRange] = useState(null)
+    const [selectedTransferred, setSelectedTransferred] = useState(null);
     const [farmers, setFarmers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
 
@@ -74,7 +75,7 @@ const CashOuts = () => {
             onOk: async () => {
                 try {
                     const response = await api.request('put', `/api/consignment/${consignmentId}`, { transferred: isRemoved ? 'No' : 'Yes' });
-                 
+
                     if (response.status === false) {
                         message.error(response.message);
                     }
@@ -89,6 +90,8 @@ const CashOuts = () => {
     const clearFilters = () => {
         setSelectedFarmer(null);
         setSelectedWarehouse(null);
+        setSelectedDateRange(null);
+        setSelectedTransferred(null);
     }
 
     const commodityColumns = [
@@ -165,6 +168,12 @@ const CashOuts = () => {
         },
     ];
 
+    const normalizeDate = (date) => {
+        const normalized = new Date(date);
+        normalized.setHours(0, 0, 0, 0);
+        return normalized;
+    };
+
     return (
         <div>
             <div style={{ marginBottom: 16 }}>
@@ -194,13 +203,24 @@ const CashOuts = () => {
                     ))}
                 </Select>
 
+                <Select
+                    placeholder="Transfer"
+                    style={{ width: 200, marginLeft: '9px' }}
+                    onChange={(value) => setSelectedTransferred(value)}
+                    value={selectedTransferred}
+                >
+                    <Option key='Yes' value='Yes'>Transferred</Option>
+                    <Option key='No' value='No'>Not Transferred</Option>
+
+                </Select>
+
                 <DatePicker.RangePicker
                     style={{ marginLeft: 8 }}
                     onChange={(dates) => setSelectedDateRange(dates)}
                     value={selectedDateRange}
                 />
 
-                {selectedFarmer || selectedWarehouse ? (
+                {selectedFarmer || selectedWarehouse || selectedDateRange || selectedTransferred ? (
                     <Button
                         type="primary"
                         onClick={clearFilters}
@@ -215,8 +235,19 @@ const CashOuts = () => {
                 downloadButtonText="Export"
                 downloadFileName="Consignments"
                 data={consignments.filter(consignment => {
-                    return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer) && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse)
-                        // (!selectedDateRange || )
+                    const consignmentDate = normalizeDate(consignment.createdAt);
+                    let dateRangeMatch = true;
+                    if (selectedDateRange) {
+                        const [start, end] = selectedDateRange.map(date => normalizeDate(date));
+                        dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
+                    }
+                    const transferredMatch = !selectedTransferred || (
+                        consignment.transferred?.toLowerCase() === selectedTransferred.toLowerCase()
+                    );
+                    return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer) &&
+                        (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse) &&
+                        (dateRangeMatch) &&
+                        (transferredMatch) 
                     );
                 })}
                 isFilter={false}

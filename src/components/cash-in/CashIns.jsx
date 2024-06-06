@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Table, Tag, Select } from 'antd';
+import { Modal, Button, Table, Tag, Select, DatePicker } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 import { readableDate } from '../../utils/config';
@@ -15,6 +15,8 @@ const CashIns = () => {
     });
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+    const [selectedDateRange, setSelectedDateRange] = useState(null);
+    const [selectedReceived, setSelectedReceived] = useState(null);
     const [customers, setCustomers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
 
@@ -77,6 +79,8 @@ const CashIns = () => {
     const clearFilters = () => {
         setSelectedCustomer(null);
         setSelectedWarehouse(null);
+        setSelectedDateRange(null);
+        setSelectedReceived(null);
     }
 
     const columns = [
@@ -145,6 +149,12 @@ const CashIns = () => {
         },
     ];
 
+    const normalizeDate = (date) => {
+        const normalized = new Date(date);
+        normalized.setHours(0, 0, 0, 0);
+        return normalized;
+    };
+
     return (
         <div>
             <div style={{ marginBottom: 16 }}>
@@ -175,7 +185,24 @@ const CashIns = () => {
                     ))}
                 </Select>
 
-                {selectedCustomer || selectedWarehouse ? (
+                <Select
+                    placeholder="Received"
+                    style={{ width: 200, marginLeft: '9px' }}
+                    onChange={(value) => setSelectedReceived(value)}
+                    value={selectedReceived}
+                >
+                    <Option key='Yes' value='Yes'>Received</Option>
+                    <Option key='No' value='No'>Not Received</Option>
+
+                </Select>
+
+                <DatePicker.RangePicker
+                    style={{ marginLeft: 8 }}
+                    onChange={(dates) => setSelectedDateRange(dates)}
+                    value={selectedDateRange}
+                />
+
+                {selectedCustomer || selectedWarehouse || selectedDateRange || selectedReceived ? (
                     <Button
                         type="primary"
                         onClick={clearFilters}
@@ -190,7 +217,19 @@ const CashIns = () => {
                 downloadButtonText="Export"
                 downloadFileName="Consignments"
                 data={consignments.filter(consignment => {
-                    return ((!selectedCustomer || consignment.customerId._id === selectedCustomer) && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse));
+                    const consignmentDate = normalizeDate(consignment.createdAt);
+
+                    let dateRangeMatch = true;
+
+                    if (selectedDateRange) {
+                        const [start, end] = selectedDateRange.map(date => normalizeDate(date));
+                        dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
+                    }
+                    const receivedMatch = !selectedReceived || (
+                        consignment.received?.toLowerCase() === selectedReceived.toLowerCase()
+                    );
+                    return ((!selectedCustomer || consignment.customerId._id === selectedCustomer) && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse) &&
+                        (dateRangeMatch) && (receivedMatch));
                 })}
                 isFilter={false}
                 columns={columns}

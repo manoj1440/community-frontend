@@ -23,6 +23,12 @@ export const defaultRoutemap = {
     CASH_OUT: '/cash-out'
 }
 
+// export const readableDate = (dateObject) => {
+//     return dayjs(new Date(dateObject)).format('YYYY-MM-DD HH:mm:ss');
+// }
+
 export const readableDate = (dateObject) => {
-    return dayjs(new Date(dateObject)).format('YYYY-MM-DD HH:mm:ss');
-}
+  // Ensure the date object is in a format dayjs can understand (e.g., ISO 8601)
+  const formattedDate = new Date(dateObject).toISOString();
+  return dayjs(formattedDate).format('YYYY-MM-DD HH:mm:ss');
+};
