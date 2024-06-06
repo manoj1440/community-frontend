@@ -4,7 +4,6 @@ import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import { readableDate } from '../../utils/config';
-import ExcelExport from '../common/ExcelExport';
 import ConsignmentExcelExport from './ConsignmentExcelExport'
 
 const { Option } = Select;
@@ -230,6 +229,7 @@ const Consignments = () => {
         setSelectedDateRange(dates);
     };
 
+
     const consignmentData = consignments.filter((consignment) => {
         const consignmentDate = normalizeDate(consignment.createdAt);
 
@@ -244,10 +244,11 @@ const Consignments = () => {
                 commodityItem.commodityId._id === optionCommodity
             );
 
-        return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer)
+        return ((!selectedFarmer || (consignment.farmerId && consignment.farmerId._id === selectedFarmer))
             && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse)
             && dateRangeMatch && hasSelectedCommodity)
     })
+
 
     return (
         <div>

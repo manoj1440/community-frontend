@@ -122,6 +122,7 @@ const DashboardPage = () => {
       (dateRangeMatch));
   });
 
+
   const commodityTotals = {};
   filteredConsignments.forEach((consignment) => {
     consignment.commodity.forEach((commodityItem) => {
