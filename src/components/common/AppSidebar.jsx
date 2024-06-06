@@ -10,7 +10,13 @@ import {
     UserSwitchOutlined,
     PicRightOutlined,
     PoundOutlined,
-    ShopOutlined
+    ShopOutlined,
+    StockOutlined ,
+    MoneyCollectOutlined,
+    DollarOutlined  ,
+    RiseOutlined ,
+    ShoppingCartOutlined ,
+    FallOutlined 
 } from '@ant-design/icons';
 import { permissionmap } from '../../utils/config';
 
@@ -38,32 +44,32 @@ const AppSidebar = ({ collapsed, setCollapsed }) => {
         },
         {
             key: '/stock-in',
-            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            icon: <StockOutlined  style={{ fontSize: '1rem' }} />,
             label: 'Stock In',
         },
         {
             key: '/depot-cash',
-            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            icon: <MoneyCollectOutlined  style={{ fontSize: '1rem' }} />,
             label: 'Depot Cash',
         },
         {
             key: '/cash-in',
-            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            icon: <DollarOutlined  style={{ fontSize: '1rem' }} />,
             label: 'Depot Cash In',
         },
         {
             key: '/cash-out',
-            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            icon: <RiseOutlined  style={{ fontSize: '1rem' }} />,
             label: 'Paid to Farmer',
         },
         {
             key: '/consignment',
-            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            icon: <ShoppingCartOutlined  style={{ fontSize: '1rem' }} />,
             label: 'Consignment In',
         },
         {
             key: '/stock-out',
-            icon: <AreaChartOutlined style={{ fontSize: '1rem' }} />,
+            icon: <FallOutlined  style={{ fontSize: '1rem' }} />,
             label: 'Stock Out',
         },
         {

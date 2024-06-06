@@ -13,7 +13,6 @@ const CustomTable = ({
     fetchData,
     totalRecords
 }) => {
-    console.log("DATA", data)
     const [columnFilters, setColumnFilters] = useState({});
     const [currentPagination, setCurrentPagination] = useState(pagination || {});
 
@@ -24,7 +23,7 @@ const CustomTable = ({
         }
         setColumnFilters({ ...filters });
     };
-    
+
     const applyFilters = (data, filters) => {
         return data.filter((record) => {
             return Object.keys(filters).every((key) => {
@@ -125,6 +124,7 @@ const CustomTable = ({
                 buttonText={downloadButtonText}
                 fileName={downloadFileName}
             />
+
             <Table
                 dataSource={isFilter ? [...filteredData] : data}
                 columns={isFilter ? enhancedColumns : columns}
@@ -133,6 +133,7 @@ const CustomTable = ({
                     onChangePagination(pagination, filters);
                 }}
             />
+
         </>
     );
 };

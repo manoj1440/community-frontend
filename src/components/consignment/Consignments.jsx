@@ -3,6 +3,9 @@ import { Modal, Space, Button, Table, Tag, Select, DatePicker, Tooltip } from 'a
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 import { CloseCircleOutlined } from '@ant-design/icons';
+import { readableDate } from '../../utils/config';
+import ExcelExport from '../common/ExcelExport';
+import ConsignmentExcelExport from './ConsignmentExcelExport'
 
 const { Option } = Select;
 
@@ -16,12 +19,17 @@ const Consignments = () => {
     const [selectedFarmer, setSelectedFarmer] = useState(null);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [selectedDateRange, setSelectedDateRange] = useState(null);
+    const [optionCommodity, setOptionCommodity] = useState(null);
     const [farmers, setFarmers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
+    const [commodities, setCommodities] = useState([]);
+    const [prices, setPrices] = useState([]);
 
     useEffect(() => {
         fetchFarmers();
         fetchWarehouses();
+        fetchCommodities();
+        fetchPrices();
         fetchConsignments(pagination.current, pagination.pageSize);
     }, []);
 
@@ -45,6 +53,26 @@ const Consignments = () => {
         }
     };
 
+    const fetchCommodities = async () => {
+        try {
+            const response = await api.request('get', '/api/commodity');
+            const { data } = response;
+            setCommodities(data);
+        } catch (error) {
+            console.error('Error fetching commodities:', error);
+        }
+    };
+
+    const fetchPrices = async () => {
+        try {
+            const response = await api.request('get', '/api/price');
+            const { data } = response;
+            setPrices(data);
+        } catch (error) {
+            console.error('Error fetching prices:', error);
+        }
+    };
+
     const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
             const response = await api.request('get', '/api/consignment');
@@ -62,7 +90,6 @@ const Consignments = () => {
             console.error('Error fetching consignments:', error);
         }
     };
-
 
     const handleDeleteConsignment = (consignmentId) => {
         Modal.confirm({
@@ -84,6 +111,7 @@ const Consignments = () => {
         setSelectedFarmer(null);
         setSelectedWarehouse(null);
         setSelectedDateRange(null);
+        setOptionCommodity(null);
     }
 
     const commodityColumns = [
@@ -139,7 +167,7 @@ const Consignments = () => {
             dataIndex: ['transporterId', 'driverContactNo'],
             dataIndex: 'transporterId',
             key: 'transporterId',
-            render: (transporterId) => transporterId ? `${transporterId.driverName}-${transporterId.transportAgency}` : 'NA'
+            render: (transporterId) => transporterId ? `${transporterId.driverName}` : 'NA'
 
         },
         {
@@ -172,6 +200,12 @@ const Consignments = () => {
             key: 'totalAmount',
         },
         {
+            title: 'Date',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            // render: (createdAt) => createdAt ? readableDate(createdAt) : 'NA'
+        },
+        {
             title: 'Actions',
             dataIndex: '_id',
             key: 'actions',
@@ -184,6 +218,36 @@ const Consignments = () => {
             ),
         },
     ];
+
+
+    const normalizeDate = (date) => {
+        const normalized = new Date(date);
+        normalized.setHours(0, 0, 0, 0);
+        return normalized;
+    };
+
+    const handleDateRangeChange = (dates) => {
+        setSelectedDateRange(dates);
+    };
+
+    const consignmentData = consignments.filter((consignment) => {
+        const consignmentDate = normalizeDate(consignment.createdAt);
+
+        let dateRangeMatch = true;
+
+        if (selectedDateRange) {
+            const [start, end] = selectedDateRange.map(date => normalizeDate(date));
+            dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
+        }
+        const hasSelectedCommodity = !optionCommodity ||
+            consignment.commodity.some(commodityItem =>
+                commodityItem.commodityId._id === optionCommodity
+            );
+
+        return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer)
+            && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse)
+            && dateRangeMatch && hasSelectedCommodity)
+    })
 
     return (
         <div>
@@ -217,13 +281,36 @@ const Consignments = () => {
                     ))}
                 </Select>
 
+                <Select
+                    showSearch
+                    placeholder="Select Commodity"
+                    style={{ width: 200, marginRight: 8 }}
+                    onChange={(value) => setOptionCommodity(value)}
+                    filterOption={(inputValue, option) =>
+                        option.children.toLowerCase().indexOf(inputValue.toLowerCase()) >= 0
+                    }
+                    value={optionCommodity}
+                >
+                    {commodities.map((commodity) => (
+                        <Option key={commodity._id} value={commodity._id}>
+                            {commodity.name}
+                        </Option>
+                    ))}
+                </Select>
+
                 <DatePicker.RangePicker
                     style={{ marginLeft: 8 }}
-                    onChange={(dates) => setSelectedDateRange(dates)}
+                    onChange={handleDateRangeChange}
                     value={selectedDateRange}
                 />
+                <ConsignmentExcelExport
+                    data={consignmentData}
+                    prices={prices}
+                    buttonText='Export'
+                    fileName='Consignments'
+                />
 
-                {selectedFarmer || selectedWarehouse || selectedDateRange ? (
+                {selectedFarmer || selectedWarehouse || selectedDateRange || optionCommodity ? (
                     <Button
                         type="primary"
                         onClick={clearFilters}
@@ -240,16 +327,12 @@ const Consignments = () => {
             <CustomTable
                 downloadButtonText="Export"
                 downloadFileName="Consignments"
-                data={consignments.filter((consignment) => {
-                    const consignmentDate = new Date(consignment.createdAt);
-                    return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer)
-                        && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse)
-                        && (!selectedDateRange || (consignmentDate >= selectedDateRange[0] && consignmentDate <= selectedDateRange[1])));
-                })}
+                data={consignmentData}
                 isFilter={false}
                 columns={columns}
                 pagination={pagination}
             />
+
             <Modal
                 title="Commodity Details"
                 visible={selectedCommodity !== null}

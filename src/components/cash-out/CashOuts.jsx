@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Table, Tag, Select, message } from 'antd';
+import { Modal, Button, Table, Tag, Select, message, DatePicker } from 'antd';
 import api from '../../utils/api';
 import CustomTable from '../common/CustomTable';
 import { readableDate } from '../../utils/config';
@@ -16,6 +16,8 @@ const CashOuts = () => {
     const [selectedCommodity, setSelectedCommodity] = useState(null);
     const [selectedFarmer, setSelectedFarmer] = useState(null);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+    const [selectedDateRange, setSelectedDateRange] = useState(null)
+    const [selectedTransferred, setSelectedTransferred] = useState(null);
     const [farmers, setFarmers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
 
@@ -73,8 +75,8 @@ const CashOuts = () => {
             onOk: async () => {
                 try {
                     const response = await api.request('put', `/api/consignment/${consignmentId}`, { transferred: isRemoved ? 'No' : 'Yes' });
-                    console.log(response)
-                    if(response.status === false){
+
+                    if (response.status === false) {
                         message.error(response.message);
                     }
                     fetchConsignments();
@@ -88,6 +90,8 @@ const CashOuts = () => {
     const clearFilters = () => {
         setSelectedFarmer(null);
         setSelectedWarehouse(null);
+        setSelectedDateRange(null);
+        setSelectedTransferred(null);
     }
 
     const commodityColumns = [
@@ -164,6 +168,12 @@ const CashOuts = () => {
         },
     ];
 
+    const normalizeDate = (date) => {
+        const normalized = new Date(date);
+        normalized.setHours(0, 0, 0, 0);
+        return normalized;
+    };
+
     return (
         <div>
             <div style={{ marginBottom: 16 }}>
@@ -193,7 +203,24 @@ const CashOuts = () => {
                     ))}
                 </Select>
 
-                {selectedFarmer || selectedWarehouse ? (
+                <Select
+                    placeholder="Transfer"
+                    style={{ width: 200, marginLeft: '9px' }}
+                    onChange={(value) => setSelectedTransferred(value)}
+                    value={selectedTransferred}
+                >
+                    <Option key='Yes' value='Yes'>Transferred</Option>
+                    <Option key='No' value='No'>Not Transferred</Option>
+
+                </Select>
+
+                <DatePicker.RangePicker
+                    style={{ marginLeft: 8 }}
+                    onChange={(dates) => setSelectedDateRange(dates)}
+                    value={selectedDateRange}
+                />
+
+                {selectedFarmer || selectedWarehouse || selectedDateRange || selectedTransferred ? (
                     <Button
                         type="primary"
                         onClick={clearFilters}
@@ -208,7 +235,20 @@ const CashOuts = () => {
                 downloadButtonText="Export"
                 downloadFileName="Consignments"
                 data={consignments.filter(consignment => {
-                    return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer) && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse));
+                    const consignmentDate = normalizeDate(consignment.createdAt);
+                    let dateRangeMatch = true;
+                    if (selectedDateRange) {
+                        const [start, end] = selectedDateRange.map(date => normalizeDate(date));
+                        dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
+                    }
+                    const transferredMatch = !selectedTransferred || (
+                        consignment.transferred?.toLowerCase() === selectedTransferred.toLowerCase()
+                    );
+                    return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer) &&
+                        (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse) &&
+                        (dateRangeMatch) &&
+                        (transferredMatch) 
+                    );
                 })}
                 isFilter={false}
                 columns={columns}

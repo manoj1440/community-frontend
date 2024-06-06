@@ -12,11 +12,14 @@ const StockIns = () => {
         pageSize: 10,
     });
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+    const [selectedCommodity, setSelectedCommodity] = useState(null);
     const [warehouses, setWarehouses] = useState([]);
+    const [commodities, setCommodities] = useState([]);
 
     useEffect(() => {
         fetchStockIns(pagination.current, pagination.pageSize);
         fetchWarehouses();
+        fetchCommodities();
     }, []);
 
     const fetchStockIns = async (page = pagination.current, pageSize = pagination.pageSize) => {
@@ -44,8 +47,19 @@ const StockIns = () => {
         }
     };
 
+    const fetchCommodities = async () => {
+        try {
+            const response = await api.request('get', '/api/commodity');
+            const { data } = response;
+            setCommodities(data);
+        } catch (error) {
+            console.error('Error fetching commodities:', error);
+        }
+    };
+
     const clearFilters = () => {
         setSelectedWarehouse(null);
+        setSelectedCommodity(null);
     };
 
     const columns = [
@@ -79,7 +93,18 @@ const StockIns = () => {
                         <Option key={warehouse._id} value={warehouse._id}>{warehouse.name}</Option>
                     ))}
                 </Select>
-                {selectedWarehouse && (
+
+                <Select
+                    placeholder="Select Commodity"
+                    style={{ width: 200, marginRight: 8 }}
+                    onChange={(value) => setSelectedCommodity(value)}
+                    value={selectedCommodity}
+                >
+                    {commodities.map(commodity => (
+                        <Option key={commodity._id} value={commodity._id}>{commodity.name}</Option>
+                    ))}
+                </Select>
+                {(selectedWarehouse || selectedCommodity) ? (
                     <Button
                         type="primary"
                         onClick={clearFilters}
@@ -87,12 +112,15 @@ const StockIns = () => {
                     >
                         Clear Filter
                     </Button>
-                )}
+                ) : ''}
             </div>
             <CustomTable
                 downloadButtonText="Export"
                 downloadFileName="StockIns"
-                data={stockIns.filter((stockIn) => !selectedWarehouse || stockIn.warehouseId._id === selectedWarehouse)}
+                data={stockIns.filter((stockIn) => {
+                    return (!selectedWarehouse || stockIn.warehouseId._id === selectedWarehouse) &&
+                        (!selectedCommodity || stockIn.commodityId._id === selectedCommodity)
+                })}
                 isFilter={false}
                 columns={columns}
                 pagination={pagination}
