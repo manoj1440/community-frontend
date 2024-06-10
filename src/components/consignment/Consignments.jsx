@@ -19,15 +19,18 @@ const Consignments = () => {
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [selectedDateRange, setSelectedDateRange] = useState(null);
     const [optionCommodity, setOptionCommodity] = useState(null);
+    const [selectedCreatedUser, setSelectedCreatedUser] = useState(null);
     const [farmers, setFarmers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
     const [commodities, setCommodities] = useState([]);
+    const [users, setUsers] = useState([]);
     const [prices, setPrices] = useState([]);
 
     useEffect(() => {
         fetchFarmers();
         fetchWarehouses();
         fetchCommodities();
+        fetchUsers();
         fetchPrices();
         fetchConsignments(pagination.current, pagination.pageSize);
     }, []);
@@ -59,6 +62,21 @@ const Consignments = () => {
             setCommodities(data);
         } catch (error) {
             console.error('Error fetching commodities:', error);
+        }
+    };
+
+    const fetchUsers = async (page = pagination.current, pageSize = pagination.pageSize) => {
+        try {
+            const response = await api.request('get', '/api/user');
+            const { data } = response;
+            setUsers(data);
+            setPagination({
+                current: page,
+                pageSize,
+                total: data.length,
+            });
+        } catch (error) {
+            console.error('Error fetching users:', error);
         }
     };
 
@@ -111,6 +129,7 @@ const Consignments = () => {
         setSelectedWarehouse(null);
         setSelectedDateRange(null);
         setOptionCommodity(null);
+        setSelectedCreatedUser(null);
     }
 
     const commodityColumns = [
@@ -173,6 +192,11 @@ const Consignments = () => {
             title: 'Warehouse',
             dataIndex: ['warehouseId', 'name'],
             key: 'warehouseId',
+        },
+        {
+            title: 'CreatedBy',
+            dataIndex: ['createdBy', 'name'],
+            key: 'createdBy'
         },
         {
             title: 'Commodities',
@@ -246,7 +270,9 @@ const Consignments = () => {
 
         return ((!selectedFarmer || (consignment.farmerId && consignment.farmerId._id === selectedFarmer))
             && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse)
-            && dateRangeMatch && hasSelectedCommodity)
+            && (!selectedCreatedUser || consignment.createdBy?._id === selectedCreatedUser)
+            && dateRangeMatch && hasSelectedCommodity
+        )
     })
 
 
@@ -256,7 +282,7 @@ const Consignments = () => {
                 <Select
                     showSearch
                     placeholder="Select Farmer"
-                    style={{ width: 200, marginRight: 8 }}
+                    style={{ width: 150, marginRight: 8 }}
                     onChange={(value) => {
                         setSelectedFarmer(value);
                     }}
@@ -273,7 +299,7 @@ const Consignments = () => {
 
                 <Select
                     placeholder="Select Warehouse"
-                    style={{ width: 200 }}
+                    style={{ width: 150 }}
                     onChange={(value) => setSelectedWarehouse(value)}
                     value={selectedWarehouse}
                 >
@@ -285,7 +311,7 @@ const Consignments = () => {
                 <Select
                     showSearch
                     placeholder="Select Commodity"
-                    style={{ width: 200, marginRight: 8 }}
+                    style={{ width: 150, marginRight: 8, marginLeft: 8 }}
                     onChange={(value) => setOptionCommodity(value)}
                     filterOption={(inputValue, option) =>
                         option.children.toLowerCase().indexOf(inputValue.toLowerCase()) >= 0
@@ -299,8 +325,25 @@ const Consignments = () => {
                     ))}
                 </Select>
 
+                <Select
+                    showSearch
+                    placeholder="Select User"
+                    style={{ width: 150, marginRight: 8, marginLeft: 8 }}
+                    onChange={(value) => setSelectedCreatedUser(value)}
+                    filterOption={(inputValue, option) =>
+                        option.children.toLowerCase().indexOf(inputValue.toLowerCase()) >= 0
+                    }
+                    value={selectedCreatedUser}
+                >
+                    {users.map((user) => (
+                        <Option key={user._id} value={user._id}>
+                            {user.name}
+                        </Option>
+                    ))}
+                </Select>
+
                 <DatePicker.RangePicker
-                    style={{ marginLeft: 8 }}
+                    style={{ marginLeft: 3 }}
                     onChange={handleDateRangeChange}
                     value={selectedDateRange}
                 />
@@ -311,7 +354,7 @@ const Consignments = () => {
                     fileName='Consignments'
                 />
 
-                {selectedFarmer || selectedWarehouse || selectedDateRange || optionCommodity ? (
+                {selectedFarmer || selectedWarehouse || selectedDateRange || optionCommodity || selectedCreatedUser ? (
                     <Button
                         type="primary"
                         onClick={clearFilters}

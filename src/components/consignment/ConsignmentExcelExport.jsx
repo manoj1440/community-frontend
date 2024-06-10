@@ -48,6 +48,8 @@ const ExcelExport = ({ data, buttonText, fileName, prices }) => {
                 runningTotals[commodityName].bags += noOfBags;
                 runningTotals[commodityName].kgs += weight;
 
+                const totalWeight = noOfBags * weight;
+
                 return {
                     "Date": readableDate(r.createdAt),
                     "Farmer Name": r.farmerId ? r.farmerId.name : '',
@@ -57,7 +59,8 @@ const ExcelExport = ({ data, buttonText, fileName, prices }) => {
                     'Opening Stock (Bags)': openingStockBags,
                     'Opening Stock (Kgs)': openingStockKgs,
                     'No of Bags': noOfBags,
-                    'Kgs': weight,
+                    'Avg Weight': weight,
+                    'Total Weight': totalWeight, 
                     'Price Paid to Farmer': amount,
                     'Rate as per Calculation': getRateForCommodity(commodityName, warehouseName),
                     'Transferred': r.transferred,
@@ -65,6 +68,7 @@ const ExcelExport = ({ data, buttonText, fileName, prices }) => {
                 };
             });
         });
+
 
         const worksheet = XLSX.utils.json_to_sheet(tempRows);
         const workbook = XLSX.utils.book_new();
