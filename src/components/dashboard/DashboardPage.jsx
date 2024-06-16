@@ -262,9 +262,10 @@ const DashboardPage = () => {
   const totalAmount = filteredConsignments.reduce((acc, consignment) => acc + consignment.totalAmount, 0);
   const totalQuantity = filteredConsignments.reduce((acc, consignment) => acc + consignment.commodity.reduce((sum, item) => sum + item.totalQuantity, 0), 0);
   const totalBags = filteredConsignments.reduce((acc, consignment) => acc + consignment.commodity.reduce((sum, item) => sum + item.bags.reduce((count, bag) => count + bag.noOfBags, 0), 0), 0);
-  const totalDepotCash = filteredDepotCash.reduce((total, item) => total + item.closingAmount, 0);
+  const totalDepotCashs = filteredDepotCash.reduce((total, item) => total + item.closingAmount, 0);
   const totalCommodities = commodities.length;
   const roundedTotalAmount = totalAmounts.toFixed(2);
+  const totalDepotCash = totalDepotCashs.toFixed(2);
 
   const totalQuantityByDate = filteredConsignments.reduce((acc, consignment) => {
     const date = moment(consignment.createdAt).format('YYYY-MM-DD');

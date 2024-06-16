@@ -28,7 +28,7 @@ const DepotCash = () => {
         totalCreditsByEntityType: {},
         totalDebitsByEntityType: {},
         roundedTotalDebits: 0,
-        roundedTotalCredits:0
+        roundedTotalCredits: 0
     });
     const [originalTransactions, setOriginalTransactions] = useState([])
 
@@ -174,11 +174,13 @@ const DepotCash = () => {
             title: 'Opening Balance',
             dataIndex: 'openingAmount',
             key: 'openingBalanceId',
+            render: (text) => parseFloat(text).toFixed(2),
         },
         {
             title: 'Closing Balance',
             dataIndex: 'closingAmount',
             key: 'closingBalanceId',
+            render: (text) => parseFloat(text).toFixed(2),
         },
         {
             title: 'Actions',
