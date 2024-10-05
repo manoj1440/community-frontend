@@ -4,8 +4,8 @@ import * as XLSX from 'xlsx';
 import { FileExcelOutlined } from '@ant-design/icons';
 import { readableDate } from '../../utils/config';
 
-const ExcelExport = ({ data, buttonText, fileName, prices }) => {
-    
+const ExcelExport = ({ excelData, buttonText, fileName, prices, handleFetchFilteredConsignments }) => {
+
     const getRateForCommodity = (commodityName, warehouseName) => {
         const commodityPrice = prices.find((price) => {
             const priceCommodityName = price.commodityId?.name;
@@ -15,7 +15,14 @@ const ExcelExport = ({ data, buttonText, fileName, prices }) => {
         return commodityPrice ? commodityPrice.historicalPrices.slice(-1)[0].price : 0;
     };
 
-    const handleExportExcel = () => {
+    const handleExportExcel = async () => {
+
+        let data = await excelData;
+
+        if (!data || data.length === 0) {
+            data = await handleFetchFilteredConsignments();
+        }
+
         if (!data || data.length <= 0) {
             message.error('There is no data to export');
             return;

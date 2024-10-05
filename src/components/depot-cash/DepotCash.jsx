@@ -5,6 +5,7 @@ import CustomTable from '../common/CustomTable';
 import { readableDate } from '../../utils/config';
 import moment from 'moment';
 import { FolderOpenTwoTone } from '@ant-design/icons';
+import ExcelExport from './TransactionExcelExport';
 
 
 const { Option } = Select;
@@ -59,6 +60,7 @@ const DepotCash = () => {
     const fetchDepotCashEntries = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
             const response = await api.request('get', '/api/depot-cash');
+            console.log("🚀 ~ fetchDepotCashEntries ~ response:", response)
             setDepotCashEntries(response);
             setPagination({
                 current: page,
@@ -341,6 +343,11 @@ const DepotCash = () => {
                     value={selectedDateRange}
                 />
 
+                <ExcelExport
+                    data={selectedWarehouseTransactions}
+                    warehouses={warehouses}
+                />
+
                 <div style={{ marginBottom: 20, marginTop: 20 }}>
 
                     <Row gutter={16}>
@@ -353,7 +360,6 @@ const DepotCash = () => {
                 <Table
                     dataSource={selectedWarehouseTransactions
                         .sort((a, b) => new Date(b.date) - new Date(a.date))}
-
 
                     columns={[
                         {
