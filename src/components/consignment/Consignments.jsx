@@ -57,7 +57,7 @@ const Consignments = () => {
     const handleFetchFilteredConsignments = async () => {
          setLoading(true);
         try {
-            const url = `/api/consignment/get-all-consignments-website?page=1&limit=99999&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&commodityId=${optionCommodity || ''}&createdBy=${selectedCreatedUser || ''}&dateRange=${selectedDateRange || ''}`;
+            const url = `/api/consignment/consignments?page=1&limit=99999&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&commodityId=${optionCommodity || ''}&createdBy=${selectedCreatedUser || ''}&dateRange=${selectedDateRange || ''}`;
             const response = await api.request('get', url);
             const { data } = response;
             setLoading(false)
@@ -136,7 +136,7 @@ const Consignments = () => {
 
     const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
-            const url = `/api/consignment/get-all-consignments-website?page=${page}&limit=${pageSize}&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&commodityId=${optionCommodity || ''}&createdBy=${selectedCreatedUser || ''}&dateRange=${selectedDateRange || ''}`;
+            const url = `/api/consignment/consignments?page=${page}&limit=${pageSize}&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&commodityId=${optionCommodity || ''}&createdBy=${selectedCreatedUser || ''}&dateRange=${selectedDateRange || ''}`;
 
 
             const response = await api.request('get', url);
