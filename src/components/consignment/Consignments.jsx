@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Modal, Space, Button, Table, Tag, Select, DatePicker, Tooltip } from 'antd';
 import api from '../../utils/api';
-import CustomTable from '../common/GridTable';
+import CustomTable from '../common/CustomTable';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import { readableDate } from '../../utils/config';
 import ConsignmentExcelExport from './ConsignmentExcelExport'
-import AddConsignmentForm from './AddConsignmentForm';
 
 const { Option } = Select;
 
@@ -17,7 +16,6 @@ const Consignments = () => {
     });
     const [selectedCommodity, setSelectedCommodity] = useState(null);
     const [selectedFarmer, setSelectedFarmer] = useState(null);
-
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [selectedDateRange, setSelectedDateRange] = useState(null);
     const [optionCommodity, setOptionCommodity] = useState(null);
@@ -25,12 +23,8 @@ const Consignments = () => {
     const [farmers, setFarmers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
     const [commodities, setCommodities] = useState([]);
-    const [transporters, setTransporters] = useState([]);
     const [users, setUsers] = useState([]);
     const [prices, setPrices] = useState([]);
-    const [addModalOpen, setAddModalOpen] = useState('');
-    const [filteredConsignments, setFilteredConsignments] = useState([]);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchFarmers();
@@ -38,52 +32,14 @@ const Consignments = () => {
         fetchCommodities();
         fetchUsers();
         fetchPrices();
-        fetchTransporters();
+        fetchConsignments(pagination.current, pagination.pageSize);
     }, []);
-
-    useEffect(() => {
-        fetchConsignments(pagination.current = 1, pagination.pageSize = 10);
-    }, [selectedDateRange, selectedFarmer, optionCommodity, selectedCreatedUser, selectedWarehouse]);
-
-    useEffect(() => {
-        const prefetchConsignments = async () => {
-            const data = await handleFetchFilteredConsignments();
-            setFilteredConsignments(data);
-        };
-
-        prefetchConsignments();
-    }, [selectedDateRange, selectedFarmer, optionCommodity, selectedCreatedUser, selectedWarehouse]);
-
-    const handleFetchFilteredConsignments = async () => {
-         setLoading(true);
-        try {
-            const url = `/api/consignment/consignments?page=1&limit=99999&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&commodityId=${optionCommodity || ''}&createdBy=${selectedCreatedUser || ''}&dateRange=${selectedDateRange || ''}`;
-            const response = await api.request('get', url);
-            const { data } = response;
-            setLoading(false)
-            return data;
-        } catch (error) {
-            console.error('Error fetching all consignments:', error);
-            setLoading(false)
-            return [];
-        }
-    };
 
     const fetchFarmers = async () => {
         try {
             const response = await api.request('get', '/api/farmer');
             const { data } = response;
             setFarmers(data);
-        } catch (error) {
-            console.error('Error fetching farmers:', error);
-        }
-    };
-
-    const fetchTransporters = async () => {
-        try {
-            const response = await api.request('get', '/api/transporter');
-            const { data } = response;
-            setTransporters(data);
         } catch (error) {
             console.error('Error fetching farmers:', error);
         }
@@ -136,20 +92,16 @@ const Consignments = () => {
 
     const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
-            const url = `/api/consignment/consignments?page=${page}&limit=${pageSize}&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&commodityId=${optionCommodity || ''}&createdBy=${selectedCreatedUser || ''}&dateRange=${selectedDateRange || ''}`;
+            const response = await api.request('get', '/api/consignment');
+            const { data } = response;
+            let filteredConsignments = data;
 
-
-            const response = await api.request('get', url);
-
-            console.log("🚀 ~ fetchConsignments ~ response:", response);
-
-            const { data, pagination } = response;
-            setConsignments(data);
+            setConsignments(filteredConsignments);
 
             setPagination({
-                current: pagination.currentPage,
-                pageSize: pagination.limit,
-                total: pagination.totalCount,
+                current: page,
+                pageSize,
+                total: filteredConsignments.length,
             });
         } catch (error) {
             console.error('Error fetching consignments:', error);
@@ -272,7 +224,7 @@ const Consignments = () => {
             title: 'Date',
             dataIndex: 'createdAt',
             key: 'createdAt',
-            render: (createdAt) => createdAt ? readableDate(createdAt) : 'NA'
+            // render: (createdAt) => createdAt ? readableDate(createdAt) : 'NA'
         },
         {
             title: 'Actions',
@@ -300,42 +252,35 @@ const Consignments = () => {
     };
 
 
-    // const consignmentData = consignments.filter((consignment) => {
-    //     const consignmentDate = normalizeDate(consignment.createdAt);
+    const consignmentData = consignments.filter((consignment) => {
+        const consignmentDate = normalizeDate(consignment.createdAt);
 
-    //     let dateRangeMatch = true;
+        let dateRangeMatch = true;
 
-    //     if (selectedDateRange) {
-    //         const [start, end] = selectedDateRange.map(date => normalizeDate(date));
-    //         dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
-    //     }
-    //     const hasSelectedCommodity = !optionCommodity ||
-    //         consignment.commodity.some(commodityItem =>
-    //             commodityItem.commodityId._id === optionCommodity
-    //         );
+        if (selectedDateRange) {
+            const [start, end] = selectedDateRange.map(date => normalizeDate(date));
+            dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
+        }
+        const hasSelectedCommodity = !optionCommodity ||
+            consignment.commodity.some(commodityItem =>
+                commodityItem.commodityId._id === optionCommodity
+            );
 
-    //     return ((!selectedFarmer || (consignment.farmerId && consignment.farmerId._id === selectedFarmer))
-    //         && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse)
-    //         && (!selectedCreatedUser || consignment.createdBy?._id === selectedCreatedUser)
-    //         && dateRangeMatch && hasSelectedCommodity
-    //     )
-    // })
+        return ((!selectedFarmer || (consignment.farmerId && consignment.farmerId._id === selectedFarmer))
+            && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse)
+            && (!selectedCreatedUser || consignment.createdBy?._id === selectedCreatedUser)
+            && dateRangeMatch && hasSelectedCommodity
+        )
+    })
+
 
     return (
         <div>
             <div style={{ marginBottom: 16 }}>
-                <Button
-                    type="primary"
-                    style={{ marginLeft: 8 }}
-                    onClick={() => { setAddModalOpen(true) }}
-                >
-                    Add Consignment
-                </Button>
-
                 <Select
                     showSearch
                     placeholder="Select Farmer"
-                    style={{ width: 140, marginRight: 4, marginLeft: '3px' }}
+                    style={{ width: 150, marginRight: 8 }}
                     onChange={(value) => {
                         setSelectedFarmer(value);
                     }}
@@ -352,7 +297,7 @@ const Consignments = () => {
 
                 <Select
                     placeholder="Select Warehouse"
-                    style={{ width: 130 }}
+                    style={{ width: 150 }}
                     onChange={(value) => setSelectedWarehouse(value)}
                     value={selectedWarehouse}
                 >
@@ -364,7 +309,7 @@ const Consignments = () => {
                 <Select
                     showSearch
                     placeholder="Select Commodity"
-                    style={{ width: 130, marginRight: 4, marginLeft: 4 }}
+                    style={{ width: 150, marginRight: 8, marginLeft: 8 }}
                     onChange={(value) => setOptionCommodity(value)}
                     filterOption={(inputValue, option) =>
                         option.children.toLowerCase().indexOf(inputValue.toLowerCase()) >= 0
@@ -381,7 +326,7 @@ const Consignments = () => {
                 <Select
                     showSearch
                     placeholder="Select User"
-                    style={{ width: 130, marginRight: 4, marginLeft: 4 }}
+                    style={{ width: 150, marginRight: 8, marginLeft: 8 }}
                     onChange={(value) => setSelectedCreatedUser(value)}
                     filterOption={(inputValue, option) =>
                         option.children.toLowerCase().indexOf(inputValue.toLowerCase()) >= 0
@@ -396,41 +341,38 @@ const Consignments = () => {
                 </Select>
 
                 <DatePicker.RangePicker
-                    style={{ marginLeft: 1 }}
+                    style={{ marginLeft: 3 }}
                     onChange={handleDateRangeChange}
                     value={selectedDateRange}
                 />
-
                 <ConsignmentExcelExport
-                    excelData={filteredConsignments ? filteredConsignments : []}
+                    data={consignmentData}
                     prices={prices}
                     buttonText='Export'
                     fileName='Consignments'
-                    handleFetchFilteredConsignments={handleFetchFilteredConsignments}
                 />
-
-
 
                 {selectedFarmer || selectedWarehouse || selectedDateRange || optionCommodity || selectedCreatedUser ? (
                     <Button
                         type="primary"
                         onClick={clearFilters}
-                        style={{ marginLeft: 4 }}
+                        style={{ marginLeft: 8 }}
                         icon={<CloseCircleOutlined />}
                     >
-                        Clear   
+                        Clear Filter
                     </Button>
                 ) : null}
 
 
 
             </div>
-
             <CustomTable
-                data={consignments}
+                downloadButtonText="Export"
+                downloadFileName="Consignments"
+                data={consignmentData}
+                isFilter={false}
                 columns={columns}
                 pagination={pagination}
-                fetchConsignments={fetchConsignments}
             />
 
             <Modal
@@ -461,16 +403,6 @@ const Consignments = () => {
                     </div>
                 )}
             </Modal>
-
-            <AddConsignmentForm
-                isAddModalVisible={addModalOpen}
-                onCancel={() => { setAddModalOpen(false) }}
-                warehouses={warehouses}
-                commodities={commodities}
-                transporters={transporters}
-                farmers={farmers}
-                fetchConsignments={fetchConsignments}
-            />
         </div>
     );
 };
