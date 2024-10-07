@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, Button, Table, Tag, Select, message, DatePicker } from 'antd';
 import api from '../../utils/api';
-import CustomTable from '../common/CustomTable';
+import CustomTable from '../common/GridTable';
 import { readableDate } from '../../utils/config';
 import { CloseCircleOutlined } from '@ant-design/icons';
 
@@ -27,6 +27,10 @@ const CashOuts = () => {
         fetchConsignments(pagination.current, pagination.pageSize);
     }, []);
 
+    useEffect(() => {
+        fetchConsignments(pagination.current = 1, pagination.pageSize = 10);
+    }, [selectedFarmer, selectedWarehouse, selectedTransferred, selectedDateRange]);
+
     const fetchFarmers = async () => {
         try {
             const response = await api.request('get', '/api/farmer');
@@ -49,8 +53,10 @@ const CashOuts = () => {
 
     const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
-            const response = await api.request('get', '/api/consignment');
-            const { data } = response;
+            const response = await api.request('get', `/api/consignment/consignments?page=${page}&limit=${pageSize}&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&transferred=${selectedTransferred || ''}&dateRange=${selectedDateRange || ''}`)
+            const { data, pagination } = response;
+            console.log("🚀 ~ fetchConsignments ~ response:", response)
+
             setConsignments(data.map(consignment => ({
                 ...consignment,
                 commodity: consignment.commodity.map(commodity => ({
@@ -59,9 +65,9 @@ const CashOuts = () => {
                 }))
             })));
             setPagination({
-                current: page,
-                pageSize,
-                total: data.length,
+                current: pagination.currentPage,
+                pageSize: pagination.limit,
+                total: pagination.totalCount,
             });
         } catch (error) {
             console.error('Error fetching consignments:', error);
@@ -231,29 +237,14 @@ const CashOuts = () => {
                     </Button>
                 ) : null}
             </div>
+
             <CustomTable
-                downloadButtonText="Export"
-                downloadFileName="Consignments"
-                data={consignments.filter(consignment => {
-                    const consignmentDate = normalizeDate(consignment.createdAt);
-                    let dateRangeMatch = true;
-                    if (selectedDateRange) {
-                        const [start, end] = selectedDateRange.map(date => normalizeDate(date));
-                        dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
-                    }
-                    const transferredMatch = !selectedTransferred || (
-                        consignment.transferred?.toLowerCase() === selectedTransferred.toLowerCase()
-                    );
-                    return ((!selectedFarmer || consignment.farmerId._id === selectedFarmer) &&
-                        (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse) &&
-                        (dateRangeMatch) &&
-                        (transferredMatch) 
-                    );
-                })}
-                isFilter={false}
+                data={consignments}
                 columns={columns}
                 pagination={pagination}
+                fetchConsignments={fetchConsignments}
             />
+
             <Modal
                 title="Commodity Details"
                 visible={selectedCommodity !== null}

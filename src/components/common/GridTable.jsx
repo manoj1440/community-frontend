@@ -18,7 +18,7 @@ const GridTable = ({
                 pagination={{
                     ...pagination,
                     onChange: (page, pageSize) => {
-                        fetchConsignments(page, pageSize); // Fetch consignments when page changes
+                        fetchConsignments(page, pageSize); 
                     }
                 }}
             />
