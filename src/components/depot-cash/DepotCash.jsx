@@ -39,6 +39,12 @@ const DepotCash = () => {
         pageSize: 10,
     });
 
+    const [transactionPagination, setTransactionPagination] = useState({
+        current: 1,
+        pageSize: 10,
+    });
+
+
     const [form] = Form.useForm();
     const [selectedDateRange, setSelectedDateRange] = useState(null);
 
@@ -59,18 +65,29 @@ const DepotCash = () => {
 
     const fetchDepotCashEntries = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
-            const response = await api.request('get', '/api/depot-cash');
-            console.log("🚀 ~ fetchDepotCashEntries ~ response:", response)
-            setDepotCashEntries(response);
-            setPagination({
-                current: page,
-                pageSize,
-                total: response.length,
-            });
+            const response = await api.request('get', `/api/depot-cash?page=${page}&limit=${pageSize}`);
+
+            setDepotCashEntries(response.entries);
+
         } catch (error) {
             console.error('Error fetching depot cash entries:', error);
         }
     };
+
+    const fetchTransactionsByWarehouseId = async (warehouseId, page = transactionPagination.current, pageSize = transactionPagination.pageSize) => {
+        try {
+            const response = await api.request('get', `/api/depot-cash/${warehouseId}/transactions?page=${page}&limit=${pageSize}`);
+
+            setSelectedWarehouseTransactions(response.entries);
+            setTransactionPagination((prev) => ({
+                ...prev,
+                total: response.total,
+            }));
+        } catch (error) {
+            console.error('Error fetching transactions:', error);
+        }
+    };
+
 
     const handleAddModalOpen = () => {
         setIsAddModalVisible(true);
@@ -98,11 +115,12 @@ const DepotCash = () => {
     };
 
     const handleViewTransactions = (warehouseId) => {
-        const selectedWarehouse = depotCashEntries.find(entry => entry.warehouseId === warehouseId);
-        setOriginalTransactions(selectedWarehouse.transactions);
-        setSelectedWarehouseTransactions(selectedWarehouse.transactions);
+        const selectedWarehouse = depotCashEntries.find(entry => entry.warehouseId === warehouseId._id);
+
+        fetchTransactionsByWarehouseId(warehouseId._id);
         setIsTransactionModalVisible(true);
     };
+
 
     useEffect(() => {
         if (isTransactionModalVisible) {
@@ -350,11 +368,11 @@ const DepotCash = () => {
 
                 <div style={{ marginBottom: 20, marginTop: 20 }}>
 
-                    <Row gutter={16}>
+                    {/* <Row gutter={16}>
                         <Col span={8} style={overviewStyle}>Total Transactions: {overview.totalTransactions}</Col>
                         <Col span={8} style={overviewStyle}>Total Credits: {overview.roundedTotalCredits}</Col>
                         <Col span={8} style={overviewStyle}>Total Debits: {overview.roundedTotalDebits}</Col>
-                    </Row>
+                    </Row> */}
                 </div>
 
                 <Table
@@ -427,7 +445,15 @@ const DepotCash = () => {
                     ]}
 
 
-                    pagination={true}
+                    pagination={{
+                        current: transactionPagination.current,
+                        pageSize: transactionPagination.pageSize,
+                        total: transactionPagination.total,
+                        onChange: (page, pageSize) => {
+                            setTransactionPagination({ ...transactionPagination, current: page, pageSize });
+                            fetchTransactionsByWarehouseId(selectedWarehouseTransactions[0]?.warehouseId, page, pageSize); 
+                        },
+                    }}
                 />
             </Modal>
 
