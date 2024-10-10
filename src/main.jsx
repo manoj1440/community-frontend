@@ -14,21 +14,19 @@ const defaultData = {
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: defaultData.colorPrimary,
-          borderRadius: defaultData.borderRadius,
+  <ConfigProvider
+    theme={{
+      token: {
+        colorPrimary: defaultData.colorPrimary,
+        borderRadius: defaultData.borderRadius,
+      },
+      components: {
+        Button: {
+          colorPrimary: defaultData.colorPrimary
         },
-        components: {
-          Button: {
-            colorPrimary: defaultData.colorPrimary
-          },
-        },
-      }}
-    >
-      <App />
-    </ConfigProvider>
-  </React.StrictMode>,
+      },
+    }}
+  >
+    <App />
+  </ConfigProvider>
 )

@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Statistic, Select, DatePicker, Space } from 'antd';
 import './DashboardPage.css';
 import api from '../../utils/api';
-import { Doughnut, Line, Bar } from 'react-chartjs-2';
+import { Doughnut, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, registerables } from 'chart.js';
 import DashboardCard from './DashboardCard';
-import moment from 'moment';
 import { CalendarOutlined, AppstoreOutlined, EnvironmentOutlined } from '@ant-design/icons';
 
 ChartJS.register(ArcElement, Tooltip, Legend, ...registerables);
@@ -13,18 +12,21 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const DashboardPage = () => {
-  const [dashboardData, setDashboardData] = useState({});
-  const [commodityStats, setCommodityStats] = useState([]);
-  const [warehouseStats, setWarehouseStats] = useState([]);
-  const [consignments, setConsignments] = useState([]);
   const [selectedCommodities, setSelectedCommodities] = useState(['All Commodities']);
   const [selectedWarehouses, setSelectedWarehouses] = useState(['All Warehouses']);
   const [dateRange, setDateRange] = useState(null);
   const [warehouses, setWarehouses] = useState([]);
   const [commodities, setCommodities] = useState([]);
-  const [stockIns, setStockIns] = useState([]);
-  const [stockOuts, setStockOuts] = useState([]);
-  const [depotCash, setDepotCash] = useState([]);
+  const [dashboardStaticValueData, setDashboardStaticValueData] = useState([]);
+  const [barChartData, setBarChartData] = useState([]);
+  const [stockOutBarData, setStockOutBarData] = useState([]);
+  const [stockInCommodityStats, setStockInCommodityStats] = useState([]);
+  const [stockInWarehouseData, setStockInWarehouseData] = useState([]);
+  const [totalQuantityLineData, setTotalQuantityLineData] = useState({});
+  const [depotCashData, setDepotCashData] = useState({});
+  const [totalBagsLineData, setTotalBagsLineData] = useState({});
+  const [totalAmountLineData, setTotalAmountLineData] = useState({});
+  const [staticValues, setStaticValues] = useState({});
 
   let userData = { user: { name: "", email: "", contact: "", location: "", role: "" } };
   try {
@@ -34,53 +36,195 @@ const DashboardPage = () => {
   }
   const { name, role } = userData.user;
 
-
   useEffect(() => {
-    const fetchWarehouses = async () => {
+    const fetchWarehousesAndCommodities = async () => {
       try {
-        const response = await api.request('get', '/api/warehouse');
-        const { data } = response;
-        setWarehouses(data);
+        const [warehousesResponse, commoditiesResponse] = await Promise.all([
+          api.request('get', '/api/warehouse'),
+          api.request('get', '/api/commodity'),
+        ]);
+
+        setWarehouses(warehousesResponse.data);
+        setCommodities(commoditiesResponse.data);
       } catch (error) {
-        console.error('Error fetching warehouses:', error);
+        console.error('Error fetching warehouses and commodities:', error);
       }
     };
 
-    fetchWarehouses();
+    fetchWarehousesAndCommodities();
   }, []);
 
   useEffect(() => {
-    const fetchCommodities = async () => {
+    const fetchDashboardGraphs = async () => {
       try {
-        const response = await api.request('get', '/api/commodity');
-        const { data } = response;
-        setCommodities(data);
+        const serializedWarehouses = selectedWarehouses.includes('All Warehouses')
+          ? ''
+          : selectedWarehouses.join(',');
+
+        const serializedCommodities = selectedCommodities.includes('All Commodities')
+          ? ''
+          : selectedCommodities.join(',');
+
+        const formattedDateRange = dateRange
+          ? `${dateRange[0].format('YYYY-MM-DD')},${dateRange[1].format('YYYY-MM-DD')}`
+          : '';
+
+        const [dashboardGraphsResponse, dashboardGraphsSecondSetResponse] = await Promise.all([
+          api.request('get', `/api/dashboard/dashboard-graphs?warehouses=${serializedWarehouses}&commodities=${serializedCommodities}&dateRange=${formattedDateRange}`),
+          api.request('get', `/api/dashboard/dashboard-graphs-secondset?warehouses=${serializedWarehouses}&commodities=${serializedCommodities}&dateRange=${formattedDateRange}`)
+        ]);
+
+        setBarChartData(dashboardGraphsResponse.data.barChartData);
+        setStockOutBarData(dashboardGraphsResponse.data.stockOutBarData);
+        setStockInCommodityStats(dashboardGraphsResponse.data.stockInCommodityStats);
+        setStockInWarehouseData(dashboardGraphsResponse.data.StockInWarehouseData);
+
+        setTotalQuantityLineData(dashboardGraphsSecondSetResponse.data.totalQuantityLineData);
+        setDepotCashData(dashboardGraphsSecondSetResponse.data.depotCashData);
+        setTotalBagsLineData(dashboardGraphsSecondSetResponse.data.totalBagsLineData);
+        setTotalAmountLineData(dashboardGraphsSecondSetResponse.data.totalAmountLineData);
       } catch (error) {
-        console.error('Error fetching commodities:', error);
+        console.error('Error fetching dashboard graphs:', error);
       }
     };
 
-    fetchCommodities();
+    fetchDashboardGraphs();
+  }, [selectedCommodities, selectedWarehouses, dateRange]);
+
+  useEffect(() => {
+    const fetchStaticValues = async () => {
+      try {
+        const staticValueResponse = await api.request('get', `/api/dashboard/dashboard-static-values`);
+        setStaticValues(staticValueResponse.data);
+      } catch (error) {
+        console.error('Error fetching static values:', error);
+      }
+    };
+
+    fetchStaticValues();
   }, []);
 
   useEffect(() => {
-    const fetchDashboard = async () => {
+    const fetchDashboardStats = async () => {
       try {
-        const response = await api.request('get', '/api/dashboard');
-        setDashboardData(response.data);
-        setCommodityStats(response.data.stockInCommodityStats);
-        setWarehouseStats(response.data.stockInWarehouseWiseStats);
-        setConsignments(response.data.consignmentData);
-        setStockIns(response.data.stockInData);
-        setStockOuts(response.data.stockOutData);
-        setDepotCash(response.data.depotCashData);
+        const serializedWarehouses = selectedWarehouses.includes('All Warehouses')
+          ? ''
+          : selectedWarehouses.join(',');
+
+        const serializedCommodities = selectedCommodities.includes('All Commodities')
+          ? ''
+          : selectedCommodities.join(',');
+
+        const formattedDateRange = dateRange
+          ? `${dateRange[0].format('YYYY-MM-DD')},${dateRange[1].format('YYYY-MM-DD')}`
+          : '';
+
+        const dashboardStatsResponse = await api.request('get', `/api/dashboard/get-dashboard-stats?warehouses=${serializedWarehouses}&commodities=${serializedCommodities}&dateRange=${formattedDateRange}`);
+        setDashboardStaticValueData(dashboardStatsResponse.data);
       } catch (error) {
-        console.error('Error fetching dashboardData:', error);
+        console.error('Error fetching dashboard stats:', error);
       }
     };
 
-    fetchDashboard();
-  }, []);
+    fetchDashboardStats();
+  }, [selectedCommodities, selectedWarehouses, dateRange]);
+
+  const consignmentBarData = {
+    labels: barChartData.labels || [],
+    datasets: [
+      {
+        label: 'Consignments',
+        data: (barChartData.datasets && barChartData.datasets[0]?.data) || [],
+        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+      },
+    ],
+  };
+
+  const stockOutData = {
+    labels: stockOutBarData.labels || [],
+    datasets: [
+      {
+        label: 'StockOuts',
+        data: (stockOutBarData.datasets && stockOutBarData.datasets[0]?.data) || [],
+        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+      },
+    ],
+  };
+
+  const commodityData = {
+    labels: stockInCommodityStats.labels || [],
+    datasets: [
+      {
+        data: (stockInCommodityStats.datasets && stockInCommodityStats.datasets[0]?.data) || [],
+        backgroundColor: (stockInCommodityStats.datasets && stockInCommodityStats.datasets[0]?.backgroundColor) || [],
+      },
+    ],
+  };
+
+  const warehouseData = {
+    labels: stockInWarehouseData.labels || [],
+    datasets: [
+      {
+        data: (stockInWarehouseData.datasets && stockInWarehouseData.datasets[0]?.data) || [],
+        backgroundColor: (stockInWarehouseData.datasets && stockInWarehouseData.datasets[0]?.backgroundColor) || [],
+      },
+    ],
+  };
+
+  const totalQuantityChartData = {
+    labels: totalQuantityLineData.labels || [],
+    datasets: [
+      {
+        label: 'Total Quantity',
+        data: (totalQuantityLineData.datasets && totalQuantityLineData.datasets[0]?.data) || [],
+        fill: true,
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        tension: 0.1,
+      },
+    ],
+  };
+
+  const totalAmountChartData = {
+    labels: totalAmountLineData.labels || [],
+    datasets: [
+      {
+        label: 'Total Amount',
+        data: (totalAmountLineData.datasets && totalAmountLineData.datasets[0]?.data) || [],
+        fill: true,
+        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        tension: 0.1,
+      },
+    ],
+  };
+
+  const totalBagsChartData = {
+    labels: totalBagsLineData.labels || [],
+    datasets: [
+      {
+        label: 'Total Number of Bags',
+        data: (totalBagsLineData.datasets && totalBagsLineData.datasets[0]?.data) || [],
+        fill: true,
+        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        tension: 0.1,
+      },
+    ],
+  };
+
+  const depotCashChartData = {
+    labels: depotCashData.labels || [],
+    datasets: [
+      {
+        label: 'Depot Cash Amount',
+        data: (depotCashData.datasets && depotCashData.datasets[0]?.data) || [],
+        backgroundColor: depotCashData.datasets
+          ? depotCashData.datasets[0].backgroundColor
+          : [],
+      },
+    ],
+  };
 
   const handleCommoditiesChange = (value) => {
     if (value.includes('All Commodities') && value.length > 1) {
@@ -102,237 +246,12 @@ const DashboardPage = () => {
     }
   };
 
-
-  const normalizeDate = (date) => {
-    const normalized = new Date(date);
-    normalized.setHours(0, 0, 0, 0);
-    return normalized;
-  };
-
-  const filteredConsignments = consignments.filter((consignment) => {
-    const consignmentDate = normalizeDate(consignment.createdAt);
-    let dateRangeMatch = true;
-    if (dateRange) {
-      const [start, end] = dateRange.map(date => normalizeDate(date));
-      dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
-    }
-    return (
-      (selectedWarehouses.includes('All Warehouses') || selectedWarehouses.includes(consignment.warehouseId)) &&
-      (selectedCommodities.includes('All Commodities') || consignment.commodity.some((commodity) => selectedCommodities.includes(commodity.commodityId))) &&
-      (dateRangeMatch));
-  });
-
-
-  const commodityTotals = {};
-  filteredConsignments.forEach((consignment) => {
-    consignment.commodity.forEach((commodityItem) => {
-      const commodityId = commodityItem.commodityId;
-      if (selectedCommodities.includes('All Commodities') || selectedCommodities.includes(commodityId)) {
-        commodityTotals[commodityId] = (commodityTotals[commodityId] || 0) + commodityItem.amount;
-      }
-    });
-  });
-
-  const totalAmounts = Object.values(commodityTotals).reduce((acc, amount) => acc + amount, 0);
-
-  const filteredStockIns = stockIns.filter((stockIn) => {
-    return (
-      (selectedWarehouses.includes('All Warehouses') || selectedWarehouses.includes(stockIn.warehouseId)) &&
-      (selectedCommodities.includes('All Commodities') || selectedCommodities.includes(stockIn.commodityId)));
-  });
-
-  const filteredStockOuts = stockOuts.filter((stockOut) => {
-    const stockOutsDate = normalizeDate(stockOut.createdAt);
-    let dateRangeMatch = true;
-    if (dateRange) {
-      const [start, end] = dateRange.map(date => normalizeDate(date));
-      dateRangeMatch = stockOutsDate >= start && stockOutsDate <= end;
-    }
-    return (
-      (selectedWarehouses.includes('All Warehouses') || selectedWarehouses.includes(stockOut.warehouseId)) &&
-      (selectedCommodities.includes('All Commodities') || selectedCommodities.includes(stockOut.commodityId)) &&
-      (dateRangeMatch));
-  });
-
-  const filteredDepotCash = depotCash.filter((cash) => {
-    return (
-      selectedWarehouses.includes('All Warehouses') || selectedWarehouses.includes(cash.warehouseId)
-    );
-  });
-
-  const commodityData = {
-    labels: commodityStats.map((stat) => stat._id),
-    datasets: [
-      {
-        data: commodityStats.map((stat) => stat.totalQuantity),
-        backgroundColor: commodityStats.map(() => `#${Math.floor(Math.random() * 16777215).toString(16)}`),
-      },
-    ],
-  };
-
-  const warehouseData = {
-    labels: warehouseStats.map((stat) => `${stat._id.warehouseName} - ${stat._id.commodityName}`),
-    datasets: [
-      {
-        data: warehouseStats.map((stat) => stat.totalQuantity),
-        backgroundColor: warehouseStats.map(() => `#${Math.floor(Math.random() * 16777215).toString(16)}`),
-      },
-    ],
-  };
-
-  const depotCashData = {
-    labels: filteredDepotCash.map((item) => {
-      const warehouse = warehouses.find((warehouse) => warehouse._id === item.warehouseId);
-      return warehouse ? warehouse.name : null;
-    }),
-    datasets: [
-      {
-        label: 'Depot Cash Amount',
-        data: filteredDepotCash.map((item) => item.closingAmount),
-        backgroundColor: warehouseStats.map(() => `#${Math.floor(Math.random() * 16777215).toString(16)}`),
-      },
-    ],
-  };
-
-  const consignmentsByDate = {};
-  filteredConsignments.forEach((consignment) => {
-    const consignmentDate = moment(consignment.createdAt).format('YYYY-MM-DD');
-    if (consignmentsByDate[consignmentDate]) {
-      consignmentsByDate[consignmentDate]++;
-    } else {
-      consignmentsByDate[consignmentDate] = 1;
-    }
-  });
-
-  const stockInsByDate = {};
-  let totalStockInQuantity = 0;
-  filteredStockIns.forEach((stockIn) => {
-    const stockInDate = moment(stockIn.createdAt).format('YYYY-MM-DD');
-    totalStockInQuantity = totalStockInQuantity + stockIn.totalQuantity;
-    if (stockInsByDate[stockInDate]) {
-      stockInsByDate[stockInDate]++;
-    } else {
-      stockInsByDate[stockInDate] = 1;
-    }
-  });
-
-  const stockOutsByDate = {};
-  filteredStockOuts.forEach((stockOut) => {
-    const stockOutDate = moment(stockOut.createdAt).format('YYYY-MM-DD');
-    if (stockOutsByDate[stockOutDate]) {
-      stockOutsByDate[stockOutDate]++;
-    } else {
-      stockOutsByDate[stockOutDate] = 1;
-    }
-  });
-
-  const consignmentBarData = {
-    labels: Object.keys(consignmentsByDate),
-    datasets: [
-      {
-        label: 'Consignments',
-        data: Object.values(consignmentsByDate),
-        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-      },
-    ],
-  };
-
-  const stockInBarData = {
-    labels: Object.keys(stockInsByDate),
-    datasets: [
-      {
-        label: 'StockIns',
-        data: Object.values(stockInsByDate),
-        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-      }
-    ]
-  }
-
-  const stockOutBarData = {
-    labels: Object.keys(stockOutsByDate),
-    datasets: [
-      {
-        label: 'StockOuts',
-        data: Object.values(stockOutsByDate),
-        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-      }
-    ]
-  }
-
-  const totalAmount = filteredConsignments.reduce((acc, consignment) => acc + consignment.totalAmount, 0);
-  const totalQuantity = filteredConsignments.reduce((acc, consignment) => acc + consignment.commodity.reduce((sum, item) => sum + item.totalQuantity, 0), 0);
-  const totalBags = filteredConsignments.reduce((acc, consignment) => acc + consignment.commodity.reduce((sum, item) => sum + item.bags.reduce((count, bag) => count + bag.noOfBags, 0), 0), 0);
-  const totalDepotCashs = filteredDepotCash.reduce((total, item) => total + item.closingAmount, 0);
-  const totalCommodities = commodities.length;
-  const roundedTotalAmount = totalAmounts.toFixed(2);
-  const totalDepotCash = totalDepotCashs.toFixed(2);
-
-  const totalQuantityByDate = filteredConsignments.reduce((acc, consignment) => {
-    const date = moment(consignment.createdAt).format('YYYY-MM-DD');
-    acc[date] = (acc[date] || 0) + consignment.commodity.reduce((sum, item) => sum + item.totalQuantity, 0);
-    return acc;
-  }, {});
-
-  const totalBagsByDate = filteredConsignments.reduce((acc, consignment) => {
-    const date = moment(consignment.createdAt).format('YYYY-MM-DD');
-    acc[date] = (acc[date] || 0) + consignment.commodity.reduce((sum, item) => sum + item.bags.reduce((count, bag) => count + bag.noOfBags, 0), 0);
-    return acc;
-  }, {});
-
-  const totalAmountByDate = filteredConsignments.reduce((acc, consignment) => {
-    const date = moment(consignment.createdAt).format('YYYY-MM-DD');
-    acc[date] = (acc[date] || 0) + consignment.totalAmount;
-    return acc;
-  }, {});
-
-  const totalQuantityLineData = {
-    labels: Object.keys(totalQuantityByDate),
-    datasets: [
-      {
-        label: 'Total Quantity',
-        data: Object.values(totalQuantityByDate),
-        fill: true,
-        backgroundColor: 'rgba(54, 162, 235, 0.6)', // Light blue fill color
-        borderColor: 'rgba(54, 162, 235, 1)',       // Darker blue border color
-        tension: 0.1,
-      },
-    ],
-  };
-
-  const totalBagsLineData = {
-    labels: Object.keys(totalBagsByDate),
-    datasets: [
-      {
-        label: 'Total Number of Bags',
-        data: Object.values(totalBagsByDate),
-        fill: true,
-        backgroundColor: 'rgba(75, 192, 192, 0.6)', // Light teal fill color
-        borderColor: 'rgba(75, 192, 192, 1)',       // Darker teal border color
-        tension: 0.1,
-      },
-    ],
-  };
-
-  const totalAmountLineData = {
-    labels: Object.keys(totalAmountByDate),
-    datasets: [
-      {
-        label: 'Total Amount',
-        data: Object.values(totalAmountByDate),
-        fill: true,
-        backgroundColor: 'rgba(255, 99, 132, 0.6)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-        tension: 0.1,
-      },
-    ],
-  };
-
   const consignment = {
-    consignmentCount: filteredConsignments.length,
-    totalStockIns: totalStockInQuantity,
-    totalBags: totalBags,
-    totalDepotCash: totalDepotCash,
-    totalAmount: roundedTotalAmount,
+    consignmentCount: dashboardStaticValueData.consignmentCount,
+    totalStockIns: dashboardStaticValueData.totalStockIn,
+    totalBags: dashboardStaticValueData.totalBags,
+    totalDepotCash: dashboardStaticValueData.totalDepotCash,
+    totalAmount: dashboardStaticValueData.totalAmount,
     name: name,
     role: role
   }
@@ -421,7 +340,7 @@ const DashboardPage = () => {
 
             <div className='line-chart'>
               <h2>StockOut Stats (Per Day)</h2>
-              <BarChart data={stockOutBarData} />
+              <BarChart data={stockOutData} />
             </div>
 
             <div className="line-chart" style={{ margin: "90px 90px 90px 120px" }}>
@@ -437,13 +356,13 @@ const DashboardPage = () => {
         </div>
 
         <div className='line-chart-card'>
-          {dashboardData && (
+          {staticValues && staticValues.counts && (
             <Row gutter={[16, 16]} style={{ marginTop: "40px" }}>
               <Col xs={24} sm={12} md={6}>
                 <Card className="dashboard-card card-blue">
                   <Statistic
                     title="Total Commodities"
-                    value={totalCommodities}
+                    value={staticValues.counts.commoditiesCount}
                     valueStyle={{ fontSize: '2rem' }}
                   />
                 </Card>
@@ -452,7 +371,7 @@ const DashboardPage = () => {
                 <Card className="dashboard-card card-green">
                   <Statistic
                     title="Total Farmers"
-                    value={dashboardData.totalFarmersCount}
+                    value={staticValues.counts.farmersCount}
                     valueStyle={{ fontSize: '2rem' }}
                   />
                 </Card>
@@ -461,7 +380,7 @@ const DashboardPage = () => {
                 <Card className="dashboard-card card-orange">
                   <Statistic
                     title="Total Transporters"
-                    value={dashboardData.totalTransportersCount}
+                    value={staticValues.counts.transportersCount}
                     valueStyle={{ fontSize: '2rem' }}
                   />
                 </Card>
@@ -470,7 +389,7 @@ const DashboardPage = () => {
                 <Card className="dashboard-card card-green2">
                   <Statistic
                     title="Total Customers"
-                    value={dashboardData.totalCustomersCount}
+                    value={staticValues.counts.customersCount}
                     valueStyle={{ fontSize: '2rem' }}
                   />
                 </Card>
@@ -483,22 +402,22 @@ const DashboardPage = () => {
           <div className='line-chart-container'>
             <div className='line-chart'>
               <h2>ConsignmentIn Quantity (Per Day)</h2>
-              <BarChart data={totalQuantityLineData} />
+              <BarChart data={totalQuantityChartData} />
             </div>
 
             <div className='line-chart'>
               <h2>ConsignmentIn Amount (Per Day)</h2>
-              <BarChart data={totalAmountLineData} />
+              <BarChart data={totalAmountChartData} />
             </div>
 
             <div className='line-chart'>
               <h2>ConsignmentIn Bags (Per Day)</h2>
-              <BarChart data={totalBagsLineData} />
+              <BarChart data={totalBagsChartData} />
             </div>
 
             <div className="line-chart" style={{ margin: "90px 90px 90px 120px" }}>
               <h2>DepotCash Warehouse-Wise Stats</h2>
-              <DoughnutChart data={depotCashData} />
+              <DoughnutChart data={depotCashChartData} />
             </div>
           </div>
         </div>

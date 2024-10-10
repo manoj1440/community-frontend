@@ -3,7 +3,7 @@ import { Modal, Space, Button } from 'antd';
 import api from '../../utils/api';
 import EditTransporter from './EditTransporter';
 import AddTransporterForm from './AddTransporterForm';
-import CustomTable from '../common/CustomTable';
+import CustomTable from '../common/GridTable';
 
 const Transporters = () => {
     const [transporters, setTransporters] = useState([]);
@@ -22,14 +22,13 @@ const Transporters = () => {
 
     const fetchTransporters = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
-            const response = await api.request('get', '/api/transporter');
-            const { data } = response;
-            console.log(data);
-            setTransporters(data);
+            const response = await api.request('get', `/api/transporter/website/transporters?page=${page}&pageSize=${pageSize}`);
+            
+            setTransporters(response.data);
             setPagination({
-                current: page,
-                pageSize,
-                total: data.length,
+                page: response.pagination.page,
+                pageSize: response.pagination.pageSize,
+                total: response.pagination.total,
             });
         } catch (error) {
             console.error('Error fetching transporters:', error);
@@ -103,12 +102,10 @@ const Transporters = () => {
                 Add Transporter
             </Button>
             <CustomTable
-                downloadButtonText="Export"
-                downloadFileName="Transporters"
                 data={transporters}
-                isFilter={false}
                 columns={columns}
                 pagination={pagination}
+                fetchConsignments={fetchTransporters}
             />
             <EditTransporter
                 fetchTransporters={fetchTransporters}

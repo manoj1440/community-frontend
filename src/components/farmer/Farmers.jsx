@@ -3,7 +3,7 @@ import { Modal, Space, Button } from 'antd';
 import api from '../../utils/api';
 import EditFarmer from './EditFarmer';
 import AddFarmerForm from './AddFarmerForm';
-import CustomTable from '../common/CustomTable';
+import CustomTable from '../common/GridTable';
 
 const Farmers = () => {
     const [farmers, setFarmers] = useState([]);
@@ -22,13 +22,13 @@ const Farmers = () => {
 
     const fetchFarmers = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
-            const response = await api.request('get', '/api/farmer');
-            const { data } = response;
-            setFarmers(data);
+            const response = await api.request('get', `/api/farmer/website/farmers?page=${page}&pageSize=${pageSize}`);
+
+            setFarmers(response.data.farmers);
             setPagination({
-                current: page,
-                pageSize,
-                total: data.length,
+                page: response.data.page,
+                pageSize: response.data.pageSize,
+                total: response.data.total
             });
         } catch (error) {
             console.error('Error fetching farmers:', error);
@@ -102,12 +102,10 @@ const Farmers = () => {
                 Add Farmer
             </Button>
             <CustomTable
-                downloadButtonText="Export"
-                downloadFileName="Farmers"
                 data={farmers}
-                isFilter={false}
                 columns={columns}
                 pagination={pagination}
+                fetchConsignments={fetchFarmers}
             />
             <EditFarmer
                 fetchFarmers={fetchFarmers}
