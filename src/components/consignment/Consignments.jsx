@@ -272,7 +272,7 @@ const Consignments = () => {
             title: 'Date',
             dataIndex: 'createdAt',
             key: 'createdAt',
-            render: (createdAt) => createdAt ? readableDate(createdAt) : 'NA'
+            // render: (createdAt) => createdAt ? readableDate(createdAt) : 'NA'
         },
         {
             title: 'Actions',
