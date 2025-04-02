@@ -15,16 +15,20 @@ const StockIns = () => {
     const [selectedCommodity, setSelectedCommodity] = useState(null);
     const [warehouses, setWarehouses] = useState([]);
     const [commodities, setCommodities] = useState([]);
+    const [selectedFinancialYear, setSelectedFinancialYear] = useState('2025-2026');
 
     useEffect(() => {
-        fetchStockIns(pagination.current, pagination.pageSize);
         fetchWarehouses();
         fetchCommodities();
     }, []);
 
+    useEffect(() => {
+        fetchStockIns(pagination.current, pagination.pageSize);
+    }, [selectedFinancialYear]);
+
     const fetchStockIns = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
-            const response = await api.request('get', '/api/stock-in');
+            const response = await api.request('get', `/api/stock-in?financialYear=${selectedFinancialYear}`);
             const { data } = response;
             setStockIns(data);
             setPagination({
@@ -60,7 +64,13 @@ const StockIns = () => {
     const clearFilters = () => {
         setSelectedWarehouse(null);
         setSelectedCommodity(null);
+        setSelectedFinancialYear('2025-2026');
     };
+
+    const financialYears = [
+        '2024-2025',
+        '2025-2026',
+    ]
 
     const columns = [
         {
@@ -104,6 +114,18 @@ const StockIns = () => {
                         <Option key={commodity._id} value={commodity._id}>{commodity.name}</Option>
                     ))}
                 </Select>
+
+                <Select
+                    placeholder="Select Financial Year"
+                    style={{ width: 200, marginRight: 8 }}
+                    onChange={(value) => setSelectedFinancialYear(value)}
+                    value={selectedFinancialYear}
+                >
+                    {financialYears.map(year => (
+                        <Option key={year} value={year}>{year}</Option>
+                    ))}
+                </Select>
+
                 {(selectedWarehouse || selectedCommodity) ? (
                     <Button
                         type="primary"

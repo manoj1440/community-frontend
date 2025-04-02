@@ -22,6 +22,7 @@ const Consignments = () => {
     const [selectedDateRange, setSelectedDateRange] = useState(null);
     const [optionCommodity, setOptionCommodity] = useState(null);
     const [selectedCreatedUser, setSelectedCreatedUser] = useState(null);
+    const [selectedFinancialYear, setSelectedFinancialYear] = useState("2025-2026");
     const [farmers, setFarmers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
     const [commodities, setCommodities] = useState([]);
@@ -43,7 +44,7 @@ const Consignments = () => {
 
     useEffect(() => {
         fetchConsignments(pagination.current = 1, pagination.pageSize = 10);
-    }, [selectedDateRange, selectedFarmer, optionCommodity, selectedCreatedUser, selectedWarehouse]);
+    }, [selectedDateRange, selectedFarmer, optionCommodity, selectedCreatedUser, selectedWarehouse, selectedFinancialYear]);
 
     useEffect(() => {
         const prefetchConsignments = async () => {
@@ -52,12 +53,26 @@ const Consignments = () => {
         };
 
         prefetchConsignments();
-    }, [selectedDateRange, selectedFarmer, optionCommodity, selectedCreatedUser, selectedWarehouse]);
+    }, [selectedDateRange, selectedFarmer, optionCommodity, selectedCreatedUser, selectedWarehouse, selectedFinancialYear]);
 
     const handleFetchFilteredConsignments = async () => {
-         setLoading(true);
+        setLoading(true);
         try {
-            const url = `/api/consignment/consignments?page=1&limit=99999&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&commodityId=${optionCommodity || ''}&createdBy=${selectedCreatedUser || ''}&dateRange=${selectedDateRange || ''}`;
+            let startDate = '';
+            let endDate = '';
+
+            if (selectedFinancialYear) {
+                const selectedYear = financialYears.find(y => y.value === selectedFinancialYear);
+                if (selectedYear) {
+                    startDate = selectedYear.startDate;
+                    endDate = selectedYear.endDate;
+                }
+            } else if (selectedDateRange) {
+                startDate = selectedDateRange[0]?.format('YYYY-MM-DD');
+                endDate = selectedDateRange[1]?.format('YYYY-MM-DD');
+            }
+
+            const url = `/api/consignment/consignments?page=1&limit=99999&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&commodityId=${optionCommodity || ''}&createdBy=${selectedCreatedUser || ''}&startDate=${startDate || ''}&endDate=${endDate || ''}`;
             const response = await api.request('get', url);
             const { data } = response;
             setLoading(false)
@@ -66,6 +81,40 @@ const Consignments = () => {
             console.error('Error fetching all consignments:', error);
             setLoading(false)
             return [];
+        }
+    };
+
+    const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
+        try {
+
+            let startDate = '';
+            let endDate = '';
+
+            if (selectedFinancialYear) {
+                const selectedYear = financialYears.find(y => y.value === selectedFinancialYear);
+                if (selectedYear) {
+                    startDate = selectedYear.startDate;
+                    endDate = selectedYear.endDate;
+                }
+            } else if (selectedDateRange) {
+                startDate = selectedDateRange[0]?.format('YYYY-MM-DD');
+                endDate = selectedDateRange[1]?.format('YYYY-MM-DD');
+            }
+
+            const url = `/api/consignment/consignments?page=${page}&limit=${pageSize}&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&commodityId=${optionCommodity || ''}&createdBy=${selectedCreatedUser || ''}&startDate=${startDate || ''}&endDate=${endDate || ''}`;
+
+            const response = await api.request('get', url);
+
+            const { data, pagination } = response;
+            setConsignments(data);
+
+            setPagination({
+                current: pagination.currentPage,
+                pageSize: pagination.limit,
+                total: pagination.totalCount,
+            });
+        } catch (error) {
+            console.error('Error fetching consignments:', error);
         }
     };
 
@@ -134,28 +183,6 @@ const Consignments = () => {
         }
     };
 
-    const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
-        try {
-            const url = `/api/consignment/consignments?page=${page}&limit=${pageSize}&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&commodityId=${optionCommodity || ''}&createdBy=${selectedCreatedUser || ''}&dateRange=${selectedDateRange || ''}`;
-
-
-            const response = await api.request('get', url);
-
-            console.log("🚀 ~ fetchConsignments ~ response:", response);
-
-            const { data, pagination } = response;
-            setConsignments(data);
-
-            setPagination({
-                current: pagination.currentPage,
-                pageSize: pagination.limit,
-                total: pagination.totalCount,
-            });
-        } catch (error) {
-            console.error('Error fetching consignments:', error);
-        }
-    };
-
     const handleDeleteConsignment = (consignmentId) => {
         Modal.confirm({
             title: 'Confirm Deletion',
@@ -172,12 +199,18 @@ const Consignments = () => {
         });
     };
 
+    const financialYears = [
+        { value: '2024-2025', label: '2024-2025', startDate: '2024-04-01', endDate: '2025-03-31' },
+        { value: '2025-2026', label: '2025-2026', startDate: '2025-04-01', endDate: '2026-03-31' },
+    ];
+
     const clearFilters = () => {
         setSelectedFarmer(null);
         setSelectedWarehouse(null);
         setSelectedDateRange(null);
         setOptionCommodity(null);
         setSelectedCreatedUser(null);
+        setSelectedFinancialYear("2025-2026");
     }
 
     const commodityColumns = [
@@ -297,39 +330,23 @@ const Consignments = () => {
 
     const handleDateRangeChange = (dates) => {
         setSelectedDateRange(dates);
+        setSelectedFinancialYear(null);
     };
 
-
-    // const consignmentData = consignments.filter((consignment) => {
-    //     const consignmentDate = normalizeDate(consignment.createdAt);
-
-    //     let dateRangeMatch = true;
-
-    //     if (selectedDateRange) {
-    //         const [start, end] = selectedDateRange.map(date => normalizeDate(date));
-    //         dateRangeMatch = consignmentDate >= start && consignmentDate <= end;
-    //     }
-    //     const hasSelectedCommodity = !optionCommodity ||
-    //         consignment.commodity.some(commodityItem =>
-    //             commodityItem.commodityId._id === optionCommodity
-    //         );
-
-    //     return ((!selectedFarmer || (consignment.farmerId && consignment.farmerId._id === selectedFarmer))
-    //         && (!selectedWarehouse || consignment.warehouseId._id === selectedWarehouse)
-    //         && (!selectedCreatedUser || consignment.createdBy?._id === selectedCreatedUser)
-    //         && dateRangeMatch && hasSelectedCommodity
-    //     )
-    // })
+    const handleFinancialYearChange = (value) => {
+        setSelectedFinancialYear(value);
+        setSelectedDateRange(null);
+    };
 
     return (
         <div>
             <div style={{ marginBottom: 16 }}>
                 <Button
                     type="primary"
-                    style={{ marginLeft: 8 }}
+                    style={{ marginLeft: 1 }}
                     onClick={() => { setAddModalOpen(true) }}
                 >
-                    Add Consignment
+                    Add
                 </Button>
 
                 <Select
@@ -395,6 +412,17 @@ const Consignments = () => {
                     ))}
                 </Select>
 
+                <Select
+                    placeholder="Select Financial Year"
+                    style={{ width: 130, marginRight: 8 }}
+                    onChange={handleFinancialYearChange}
+                    value={selectedFinancialYear}
+                >
+                    {financialYears.map(year => (
+                        <Option key={year.value} value={year.value}>{year.label}</Option>
+                    ))}
+                </Select>
+
                 <DatePicker.RangePicker
                     style={{ marginLeft: 1 }}
                     onChange={handleDateRangeChange}
@@ -418,7 +446,7 @@ const Consignments = () => {
                         style={{ marginLeft: 4 }}
                         icon={<CloseCircleOutlined />}
                     >
-                        Clear   
+                        Clear
                     </Button>
                 ) : null}
 

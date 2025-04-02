@@ -32,6 +32,7 @@ const DepotCash = () => {
         roundedTotalCredits: 0
     });
     const [originalTransactions, setOriginalTransactions] = useState([])
+    const [selectedFinancialYear, setSelectedFinancialYear] = useState('2025-2026');
 
 
     const [pagination, setPagination] = useState({
@@ -50,8 +51,11 @@ const DepotCash = () => {
 
     useEffect(() => {
         fetchWarehouses();
-        fetchDepotCashEntries();
     }, []);
+
+    useEffect(() => {
+        fetchDepotCashEntries();
+    }, [selectedFinancialYear])
 
     const fetchWarehouses = async () => {
         try {
@@ -65,7 +69,7 @@ const DepotCash = () => {
 
     const fetchDepotCashEntries = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
-            const response = await api.request('get', `/api/depot-cash?page=${page}&limit=${pageSize}`);
+            const response = await api.request('get', `/api/depot-cash?page=${page}&limit=${pageSize}&financialYear=${selectedFinancialYear}`);
 
             setDepotCashEntries(response.entries);
 
@@ -271,6 +275,16 @@ const DepotCash = () => {
             >
                 Add Depot Cash
             </Button>
+            <Select
+                placeholder="Select Financial Year"
+                style={{ width: 200, marginRight: 8 }}
+                onChange={(value) => setSelectedFinancialYear(value)}
+                value={selectedFinancialYear}
+            >
+                {['2024-2025', '2025-2026'].map(year => (
+                    <Option key={year} value={year}>{year}</Option>
+                ))}
+            </Select>
             <CustomTable
                 downloadButtonText="Export"
                 downloadFileName="Consignments"
@@ -451,7 +465,7 @@ const DepotCash = () => {
                         total: transactionPagination.total,
                         onChange: (page, pageSize) => {
                             setTransactionPagination({ ...transactionPagination, current: page, pageSize });
-                            fetchTransactionsByWarehouseId(selectedWarehouseTransactions[0]?.warehouseId, page, pageSize); 
+                            fetchTransactionsByWarehouseId(selectedWarehouseTransactions[0]?.warehouseId, page, pageSize);
                         },
                     }}
                 />
