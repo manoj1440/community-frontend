@@ -18,8 +18,14 @@ const CashOuts = () => {
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [selectedDateRange, setSelectedDateRange] = useState(null)
     const [selectedTransferred, setSelectedTransferred] = useState(null);
+    const [selectedFinancialYear, setSelectedFinancialYear] = useState("2025-2026");
     const [farmers, setFarmers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
+
+    const financialYears = [
+        { value: '2024-2025', label: '2024-2025', startDate: '2024-04-01', endDate: '2025-03-31' },
+        { value: '2025-2026', label: '2025-2026', startDate: '2025-04-01', endDate: '2026-03-31' },
+    ];
 
     useEffect(() => {
         fetchFarmers();
@@ -29,7 +35,7 @@ const CashOuts = () => {
 
     useEffect(() => {
         fetchConsignments(pagination.current = 1, pagination.pageSize = 10);
-    }, [selectedFarmer, selectedWarehouse, selectedTransferred, selectedDateRange]);
+    }, [selectedFarmer, selectedWarehouse, selectedTransferred, selectedDateRange, selectedFinancialYear]);
 
     const fetchFarmers = async () => {
         try {
@@ -53,17 +59,31 @@ const CashOuts = () => {
 
     const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
-            const response = await api.request('get', `/api/consignment/consignments?page=${page}&limit=${pageSize}&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&transferred=${selectedTransferred || ''}&dateRange=${selectedDateRange || ''}`)
+            let startDate = '';
+            let endDate = '';
+
+            if (selectedFinancialYear) {
+                const selectedYear = financialYears.find(y => y.value === selectedFinancialYear);
+                if (selectedYear) {
+                    startDate = selectedYear.startDate;
+                    endDate = selectedYear.endDate;
+                }
+            } else if (selectedDateRange) {
+                startDate = selectedDateRange[0].format('YYYY-MM-DD');
+                endDate = selectedDateRange[1].format('YYYY-MM-DD');
+            }
+
+            const response = await api.request('get', `/api/consignment/consignments?page=${page}&limit=${pageSize}&farmerId=${selectedFarmer || ''}&warehouseId=${selectedWarehouse || ''}&transferred=${selectedTransferred || ''}&startDate=${startDate}&endDate=${endDate}`);
             const { data, pagination } = response;
-            console.log("🚀 ~ fetchConsignments ~ response:", response)
 
             setConsignments(data.map(consignment => ({
                 ...consignment,
                 commodity: consignment.commodity.map(commodity => ({
                     ...commodity,
-                    totalBags: commodity.bags.reduce((acc, bag) => acc + bag.noOfBags, 0)
-                }))
+                    totalBags: commodity.bags.reduce((acc, bag) => acc + bag.noOfBags, 0),
+                })),
             })));
+
             setPagination({
                 current: pagination.currentPage,
                 pageSize: pagination.limit,
@@ -93,12 +113,23 @@ const CashOuts = () => {
         });
     };
 
+    const handleFinancialYearChange = (value) => {
+        setSelectedFinancialYear(value);
+        setSelectedDateRange(null);
+    };
+
+    const handleDateRangeChange = (dates) => {
+        setSelectedDateRange(dates);
+        setSelectedFinancialYear(null);
+    };
+
     const clearFilters = () => {
         setSelectedFarmer(null);
         setSelectedWarehouse(null);
         setSelectedDateRange(null);
         setSelectedTransferred(null);
-    }
+        setSelectedFinancialYear("2025-2026");
+    };
 
     const commodityColumns = [
         {
@@ -220,9 +251,20 @@ const CashOuts = () => {
 
                 </Select>
 
+                <Select
+                    placeholder="Select Financial Year"
+                    style={{ width: 200, marginRight: 8 }}
+                    onChange={handleFinancialYearChange}
+                    value={selectedFinancialYear}
+                >
+                    {financialYears.map(year => (
+                        <Option key={year.value} value={year.value}>{year.label}</Option>
+                    ))}
+                </Select>
+
                 <DatePicker.RangePicker
                     style={{ marginLeft: 8 }}
-                    onChange={(dates) => setSelectedDateRange(dates)}
+                    onChange={handleDateRangeChange}
                     value={selectedDateRange}
                 />
 

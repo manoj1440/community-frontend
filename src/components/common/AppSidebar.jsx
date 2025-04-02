@@ -11,12 +11,12 @@ import {
     PicRightOutlined,
     PoundOutlined,
     ShopOutlined,
-    StockOutlined ,
+    StockOutlined,
     MoneyCollectOutlined,
-    DollarOutlined  ,
-    RiseOutlined ,
-    ShoppingCartOutlined ,
-    FallOutlined 
+    DollarOutlined,
+    RiseOutlined,
+    ShoppingCartOutlined,
+    FallOutlined
 } from '@ant-design/icons';
 import { permissionmap } from '../../utils/config';
 
@@ -44,33 +44,33 @@ const AppSidebar = ({ collapsed, setCollapsed }) => {
         },
         {
             key: '/stock-in',
-            icon: <StockOutlined  style={{ fontSize: '1rem' }} />,
+            icon: <StockOutlined style={{ fontSize: '1rem' }} />,
             label: 'Stock In',
         },
         {
             key: '/depot-cash',
-            icon: <MoneyCollectOutlined  style={{ fontSize: '1rem' }} />,
+            icon: <MoneyCollectOutlined style={{ fontSize: '1rem' }} />,
             label: 'Depot Cash',
         },
         {
             key: '/cash-in',
-            icon: <DollarOutlined  style={{ fontSize: '1rem' }} />,
+            icon: <DollarOutlined style={{ fontSize: '1rem' }} />,
             label: 'Depot Cash In',
         },
         {
+            key: '/stock-out',
+            icon: <FallOutlined style={{ fontSize: '1rem' }} />,
+            label: 'Stock Out',
+        },
+        {
             key: '/cash-out',
-            icon: <RiseOutlined  style={{ fontSize: '1rem' }} />,
+            icon: <RiseOutlined style={{ fontSize: '1rem' }} />,
             label: 'Paid to Farmer',
         },
         {
             key: '/consignment',
-            icon: <ShoppingCartOutlined  style={{ fontSize: '1rem' }} />,
+            icon: <ShoppingCartOutlined style={{ fontSize: '1rem' }} />,
             label: 'Consignment In',
-        },
-        {
-            key: '/stock-out',
-            icon: <FallOutlined  style={{ fontSize: '1rem' }} />,
-            label: 'Stock Out',
         },
         {
             key: '/warehouse',

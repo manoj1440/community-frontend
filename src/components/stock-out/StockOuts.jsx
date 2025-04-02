@@ -17,6 +17,7 @@ const StockOuts = () => {
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [selectedDateRange, setSelectedDateRange] = useState(null);
+    const [selectedFinancialYear, setSelectedFinancialYear] = useState("2025-2026");
     const [customers, setCustomers] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -25,8 +26,11 @@ const StockOuts = () => {
     useEffect(() => {
         fetchCustomers();
         fetchWarehouses();
-        fetchConsignments(pagination.current, pagination.pageSize);
     }, []);
+
+    useEffect(() => {
+        fetchConsignments(pagination.current, pagination.pageSize);
+    }, [selectedFinancialYear]);
 
     const fetchCustomers = async () => {
         try {
@@ -51,7 +55,7 @@ const StockOuts = () => {
 
     const fetchConsignments = async (page = pagination.current, pageSize = pagination.pageSize) => {
         try {
-            const response = await api.request('get', '/api/stock-out');
+            const response = await api.request('get', `/api/stock-out?financialYear=${selectedFinancialYear}`)
             const { data } = response;
             setConsignments(data);
             setPagination({
@@ -84,7 +88,14 @@ const StockOuts = () => {
         setSelectedCustomer(null);
         setSelectedWarehouse(null);
         setSelectedDateRange(null);
+        setSelectedFinancialYear("2025-2026")
     }
+
+
+    const financialYears = [
+        { value: '2024-2025', label: '2024-2025', startDate: '2024-04-01', endDate: '2025-03-31' },
+        { value: '2025-2026', label: '2025-2026', startDate: '2025-04-01', endDate: '2026-03-31' },
+    ];
 
     const bagColumns = [
         {
@@ -196,6 +207,16 @@ const StockOuts = () => {
         return normalized;
     };
 
+    const handleDateRangeChange = (dates) => {
+        setSelectedDateRange(dates);
+        setSelectedFinancialYear(null);
+    };
+
+    const handleFinancialYearChange = (value) => {
+        setSelectedFinancialYear(value);
+        setSelectedDateRange(null);
+    };
+
     return (
         <div>
             <div style={{ marginBottom: 16 }}>
@@ -225,9 +246,20 @@ const StockOuts = () => {
                     ))}
                 </Select>
 
+                <Select
+                    placeholder="Select Financial Year"
+                    style={{ width: 130, marginRight: 8 }}
+                    onChange={handleFinancialYearChange}
+                    value={selectedFinancialYear}
+                >
+                    {financialYears.map(year => (
+                        <Option key={year.value} value={year.value}>{year.label}</Option>
+                    ))}
+                </Select>
+
                 <DatePicker.RangePicker
                     style={{ marginLeft: 8 }}
-                    onChange={(dates) => setSelectedDateRange(dates)}
+                    onChange={handleDateRangeChange}
                     value={selectedDateRange}
                 />
 
