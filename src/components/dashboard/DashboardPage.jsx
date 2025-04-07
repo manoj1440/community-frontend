@@ -27,6 +27,7 @@ const DashboardPage = () => {
   const [totalBagsLineData, setTotalBagsLineData] = useState({});
   const [totalAmountLineData, setTotalAmountLineData] = useState({});
   const [staticValues, setStaticValues] = useState({});
+  const [selectedFinancialYear, setSelectedFinancialYear] = useState('2025-2026');
 
   let userData = { user: { name: "", email: "", contact: "", location: "", role: "" } };
   try {
@@ -55,8 +56,37 @@ const DashboardPage = () => {
   }, []);
 
   useEffect(() => {
+    const fetchStaticValues = async () => {
+      try {
+        const staticValueResponse = await api.request('get', `/api/dashboard/dashboard-static-values`);
+        setStaticValues(staticValueResponse.data);
+      } catch (error) {
+        console.error('Error fetching static values:', error);
+      }
+    };
+
+    fetchStaticValues();
+  }, []);
+
+  useEffect(() => {
     const fetchDashboardGraphs = async () => {
       try {
+
+        let startDate = '';
+        let endDate = '';
+
+        if (selectedFinancialYear) {
+          const selectedYear = financialYears.find(y => y.value === selectedFinancialYear);
+          if (selectedYear) {
+            startDate = selectedYear.startDate;
+            endDate = selectedYear.endDate;
+          }
+        } else if (dateRange) {
+          startDate = dateRange[0]?.format('YYYY-MM-DD');
+          endDate = dateRange[1]?.format('YYYY-MM-DD');
+        }
+
+
         const serializedWarehouses = selectedWarehouses.includes('All Warehouses')
           ? ''
           : selectedWarehouses.join(',');
@@ -65,13 +95,9 @@ const DashboardPage = () => {
           ? ''
           : selectedCommodities.join(',');
 
-        const formattedDateRange = dateRange
-          ? `${dateRange[0].format('YYYY-MM-DD')},${dateRange[1].format('YYYY-MM-DD')}`
-          : '';
-
         const [dashboardGraphsResponse, dashboardGraphsSecondSetResponse] = await Promise.all([
-          api.request('get', `/api/dashboard/dashboard-graphs?warehouses=${serializedWarehouses}&commodities=${serializedCommodities}&dateRange=${formattedDateRange}`),
-          api.request('get', `/api/dashboard/dashboard-graphs-secondset?warehouses=${serializedWarehouses}&commodities=${serializedCommodities}&dateRange=${formattedDateRange}`)
+          api.request('get', `/api/dashboard/dashboard-graphs?warehouses=${serializedWarehouses}&commodities=${serializedCommodities}&startDate=${startDate}&endDate=${endDate}`),
+          api.request('get', `/api/dashboard/dashboard-graphs-secondset?warehouses=${serializedWarehouses}&commodities=${serializedCommodities}&startDate=${startDate}&endDate=${endDate}`)
         ]);
 
         setBarChartData(dashboardGraphsResponse.data.barChartData);
@@ -89,24 +115,26 @@ const DashboardPage = () => {
     };
 
     fetchDashboardGraphs();
-  }, [selectedCommodities, selectedWarehouses, dateRange]);
-
-  useEffect(() => {
-    const fetchStaticValues = async () => {
-      try {
-        const staticValueResponse = await api.request('get', `/api/dashboard/dashboard-static-values`);
-        setStaticValues(staticValueResponse.data);
-      } catch (error) {
-        console.error('Error fetching static values:', error);
-      }
-    };
-
-    fetchStaticValues();
-  }, []);
+  }, [selectedCommodities, selectedWarehouses, dateRange, selectedFinancialYear]);
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
+
+        let startDate = '';
+        let endDate = '';
+
+        if (selectedFinancialYear) {
+          const selectedYear = financialYears.find(y => y.value === selectedFinancialYear);
+          if (selectedYear) {
+            startDate = selectedYear.startDate;
+            endDate = selectedYear.endDate;
+          }
+        } else if (dateRange) {
+          startDate = dateRange[0]?.format('YYYY-MM-DD');
+          endDate = dateRange[1]?.format('YYYY-MM-DD');
+        }
+
         const serializedWarehouses = selectedWarehouses.includes('All Warehouses')
           ? ''
           : selectedWarehouses.join(',');
@@ -119,7 +147,7 @@ const DashboardPage = () => {
           ? `${dateRange[0].format('YYYY-MM-DD')},${dateRange[1].format('YYYY-MM-DD')}`
           : '';
 
-        const dashboardStatsResponse = await api.request('get', `/api/dashboard/get-dashboard-stats?warehouses=${serializedWarehouses}&commodities=${serializedCommodities}&dateRange=${formattedDateRange}`);
+        const dashboardStatsResponse = await api.request('get', `/api/dashboard/get-dashboard-stats?warehouses=${serializedWarehouses}&commodities=${serializedCommodities}&startDate=${startDate}&endDate=${endDate}`);
         setDashboardStaticValueData(dashboardStatsResponse.data);
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
@@ -127,7 +155,7 @@ const DashboardPage = () => {
     };
 
     fetchDashboardStats();
-  }, [selectedCommodities, selectedWarehouses, dateRange]);
+  }, [selectedCommodities, selectedWarehouses, dateRange, selectedFinancialYear]);
 
   const consignmentBarData = {
     labels: barChartData.labels || [],
@@ -265,14 +293,46 @@ const DashboardPage = () => {
     width: '100%',
   };
 
+  const financialYears = [
+    { value: '2024-2025', label: '2024-2025', startDate: '2024-04-01', endDate: '2025-03-31' },
+    { value: '2025-2026', label: '2025-2026', startDate: '2025-04-01', endDate: '2026-03-31' },
+  ];
+
+  const handleDateRangeChange = (dates) => {
+    setDateRange(dates);
+
+    if (dates === null) {
+      setSelectedFinancialYear("2025-2026");
+    } else {
+      setSelectedFinancialYear(null);
+    }
+  };
+
+  const handleFinancialYearChange = (value) => {
+    setSelectedFinancialYear(value);
+    setDateRange(null);
+  };
+
   return (
     <>
       <div className="dashboard-page">
         <div className="top-right-controls">
           <Space direction="horizontal" size="small" style={{ width: '100%', justifyContent: 'end' }}>
+
+            <Select
+              placeholder="Select Financial Year"
+              style={{ width: 130, marginRight: 8 }}
+              onChange={handleFinancialYearChange}
+              value={selectedFinancialYear}
+            >
+              {financialYears.map(year => (
+                <Option key={year.value} value={year.value}>{year.label}</Option>
+              ))}
+            </Select>
+
             <RangePicker
               className="custom-range-picker"
-              onChange={(dates) => setDateRange(dates)}
+              onChange={handleDateRangeChange}
               value={dateRange}
               suffixIcon={<CalendarOutlined />}
               placeholder={['Start Date', 'End Date']}
